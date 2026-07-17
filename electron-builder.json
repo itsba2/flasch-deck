@@ -1,0 +1,57 @@
+{
+  "appId": "com.itsba2.flaschdeck",
+  "productName": "FlaschDeck",
+  "directories": {
+    "output": "dist-releases"
+  },
+  "files": [
+    "dist/**/*",
+    "main.js",
+    "preload.js",
+    "package.json"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "build/icon.png"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "FlaschDeck"
+  },
+  "mac": {
+    "target": ["dmg"],
+    "icon": "build/icon.png",
+    "category": "public.app-category.education"
+  },
+  "dmg": {
+    "contents": [
+      {
+        "x": 410,
+        "y": 150,
+        "type": "link",
+        "path": "/Applications"
+      },
+      {
+        "x": 130,
+        "y": 150,
+        "type": "file"
+      }
+    ]
+  },
+  "linux": {
+    "target": ["AppImage"],
+    "icon": "build/icon.png",
+    "category": "Education"
+  },
+  "publish": {
+    "provider": "github"
+  }
+}
