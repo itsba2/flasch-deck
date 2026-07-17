@@ -1,0 +1,27 @@
+.badgeGender {
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+}
+
+.der {
+  background-color: var(--der-light);
+  color: var(--der-color);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
+.die {
+  background-color: var(--die-light);
+  color: var(--die-color);
+  border: 1px solid rgba(236, 72, 153, 0.3);
+}
+
+.das {
+  background-color: var(--das-light);
+  color: var(--das-color);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}

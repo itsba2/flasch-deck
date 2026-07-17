@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { Volume2, Sparkles, RotateCw } from 'lucide-react';
-import { Select, Button, Card, Typography, Space, Tag, Row, Col, Result } from 'antd';
-import { ArrowLeftOutlined, LoadingOutlined } from '@ant-design/icons';
-import { explainGrammar } from '../services/ai';
+import { useState } from 'react';
+import { Select, Button, Card, Typography, Space, Row, Col, Result } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Card as CardType, Deck } from '../global';
+import StudyCard from './common/StudyCard';
 
 const { Title, Text } = Typography;
 
@@ -34,10 +33,6 @@ export default function StudySession({
   const [cardVisible, setCardVisible] = useState(true);
   const [reviewedCount, setReviewedCount] = useState(0);
   const [gradesList, setGradesList] = useState<number[]>([]);
-
-  // AI explanations state
-  const [aiExplanation, setAiExplanation] = useState('');
-  const [isAiLoading, setIsAiLoading] = useState(false);
 
   // Filter and load due cards
   const startSession = () => {
@@ -71,41 +66,7 @@ export default function StudySession({
     setDueCards(cardsToReview);
     setCurrentIndex(0);
     setIsFlipped(false);
-    setAiExplanation('');
     setSessionActive(true);
-  };
-
-  const handleSpeak = (e: React.MouseEvent, text: string) => {
-    e.stopPropagation(); // Avoid flipping the card
-    if ('speechSynthesis' in window) {
-      // Cancel previous utterances to avoid overlaps
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'de-DE';
-
-      // Try to find a high quality German voice
-      const voices = window.speechSynthesis.getVoices();
-      const deVoice = voices.find((v) => v.lang.startsWith('de'));
-      if (deVoice) utterance.voice = deVoice;
-
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
-  // Get AI Grammar Explanation for current card
-  const handleGetAiExplanation = async (e: React.MouseEvent, card: CardType) => {
-    e.stopPropagation(); // Don't flip
-    if (isAiLoading) return;
-    setIsAiLoading(true);
-    setAiExplanation('');
-    try {
-      const explanation = await explainGrammar(card, apiKey);
-      setAiExplanation(explanation);
-    } catch {
-      setAiExplanation('Dilbilgisi açıklaması yüklenirken hata oluştu.');
-    } finally {
-      setIsAiLoading(false);
-    }
   };
 
   // Spaced Repetition Grading (SM-2 implementation)
@@ -161,7 +122,6 @@ export default function StudySession({
         // Swap card data, reset flip and helper text while invisible
         setCurrentIndex((prev) => prev + 1);
         setIsFlipped(false);
-        setAiExplanation('');
 
         // Wait a tiny bit for render batching, then reveal the new card
         setTimeout(() => {
@@ -258,7 +218,9 @@ export default function StudySession({
               ) : (
                 <Result
                   status="success"
-                  title={<span style={{ color: 'var(--text-primary)' }}>Çalışılacak Kart Yok!</span>}
+                  title={
+                    <span style={{ color: 'var(--text-primary)' }}>Çalışılacak Kart Yok!</span>
+                  }
                   subTitle={
                     <Space direction="vertical" style={{ display: 'flex' }}>
                       <Text type="secondary">
@@ -309,271 +271,14 @@ export default function StudySession({
             </Text>
           </div>
 
-          {/* Flashcard container */}
-          <div
-            className={`study-card-outer ${isFlipped ? 'flipped' : ''} ${!cardVisible ? 'hidden-card' : ''}`}
-            onClick={() => setIsFlipped(!isFlipped)}
-          >
-            <div className="study-card-inner">
-              {/* Front Face */}
-              <div
-                className={`card-face card-front ${currentCard.type === 'noun' ? `${currentCard.article}-border` : ''}`}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    width: '100%',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                >
-                  <Tag color="purple">
-                    {currentCard.type === 'noun'
-                      ? 'İsim (Nomen)'
-                      : currentCard.type === 'verb'
-                        ? 'Fiil (Verb)'
-                        : currentCard.type === 'adjective'
-                          ? 'Sıfat (Adjektiv)'
-                          : 'Diğer'}
-                  </Tag>
-                  <Button
-                    type="default"
-                    shape="circle"
-                    icon={<Volume2 size={16} />}
-                    onClick={(e) => handleSpeak(e, currentCard.german)}
-                  />
-                </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
-                    alignItems: 'center'
-                  }}
-                >
-                  {currentCard.type === 'noun' && (
-                    <span
-                      className={`badge-gender badge-${currentCard.article || 'der'}`}
-                      style={{ fontSize: '1rem', padding: '0.4rem 1rem' }}
-                    >
-                      {currentCard.article}
-                    </span>
-                  )}
-                  <Title level={2} style={{ fontSize: '3rem', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
-                    {currentCard.german}
-                  </Title>
-                  {currentCard.type === 'noun' && currentCard.plural && (
-                    <Text type="secondary" style={{ fontSize: '1.15rem' }}>
-                      (pl. <span style={{ fontWeight: 600 }}>{currentCard.plural}</span>)
-                    </Text>
-                  )}
-                </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '0.5rem',
-                    color: 'var(--text-muted)',
-                    fontSize: '0.85rem',
-                    alignItems: 'center'
-                  }}
-                >
-                  <RotateCw size={14} className="pulse" /> Çevirmek için kartın üzerine tıklayın
-                </div>
-              </div>
-
-              {/* Back Face */}
-              <div
-                className={`card-face card-back ${currentCard.type === 'noun' ? `${currentCard.article || 'der'}-border` : ''}`}
-                style={{ overflowY: 'auto' }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    width: '100%',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                >
-                  <Tag color="cyan">Türkçe Karşılığı</Tag>
-                  <Button
-                    type="default"
-                    shape="circle"
-                    icon={<Volume2 size={16} />}
-                    onClick={(e) => handleSpeak(e, currentCard.german)}
-                  />
-                </div>
-
-                {/* Core Translations & Grammar Specific Details */}
-                <div style={{ margin: '1rem 0', width: '100%' }}>
-                  <h3
-                    style={{
-                      fontSize: '2.25rem',
-                      fontWeight: 800,
-                      color: 'var(--success)',
-                      marginBottom: '0.5rem'
-                    }}
-                  >
-                    {currentCard.turkish}
-                  </h3>
-
-                  {/* Verb conjugations block */}
-                  {currentCard.type === 'verb' && currentCard.conjugation && (
-                    <div
-                    style={{
-                      background: 'var(--bg-trans-light)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '0.75rem',
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 1fr 1fr',
-                      gap: '0.5rem',
-                      fontSize: '0.8rem',
-                      marginBottom: '1rem'
-                    }}
-                  >
-                    <div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                        Präsens (er/sie/es)
-                      </div>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {currentCard.conjugation.praesens || '-'}
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                        Präteritum
-                      </div>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {currentCard.conjugation.praeteritum || '-'}
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                        Perfekt
-                      </div>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {currentCard.conjugation.perfekt || '-'}
-                      </div>
-                    </div>
-                    </div>
-                  )}
-
-                  {/* Adjective comparison block */}
-                  {currentCard.type === 'adjective' && currentCard.comparison && (
-                    <div
-                      style={{
-                      background: 'var(--bg-trans-light)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '0.75rem',
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 1fr',
-                      gap: '0.5rem',
-                      fontSize: '0.8rem',
-                      marginBottom: '1rem'
-                    }}
-                  >
-                    <div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                        Komparativ
-                      </div>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {currentCard.comparison.comparative || '-'}
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                        Superlativ
-                      </div>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {currentCard.comparison.superlative || '-'}
-                      </div>
-                    </div>
-                    </div>
-                  )}
-
-                  {/* Example sentences */}
-                  {currentCard.exampleGerman && (
-                    <div
-                      style={{
-                      textAlign: 'left',
-                      borderTop: '1px solid var(--border-trans)',
-                      paddingTop: '0.75rem',
-                      fontSize: '0.9rem'
-                    }}
-                  >
-                    <p style={{ color: 'var(--text-primary)', fontStyle: 'italic', margin: 0 }}>
-                        "{currentCard.exampleGerman}"
-                      </p>
-                      {currentCard.exampleTurkish && (
-                        <p
-                          style={{
-                            color: 'var(--text-secondary)',
-                            fontSize: '0.8rem',
-                            marginTop: '0.25rem',
-                            marginBottom: 0
-                          }}
-                        >
-                          ({currentCard.exampleTurkish})
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Gemini AI explanation trigger */}
-                <div style={{ width: '100%' }}>
-                  {aiExplanation ? (
-                    <div
-                      style={{
-                        background: 'rgba(124, 58, 237, 0.08)',
-                        border: '1px solid rgba(124, 58, 237, 0.25)',
-                        borderRadius: '12px',
-                        padding: '0.75rem',
-                        textAlign: 'left',
-                        fontSize: '0.8rem',
-                        lineHeight: '1.4',
-                        color: 'var(--text-primary)',
-                        maxHeight: '120px',
-                        overflowY: 'auto'
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.35rem',
-                          color: 'var(--accent-hover)',
-                          fontWeight: 700,
-                          marginBottom: '0.35rem'
-                        }}
-                      >
-                        <Sparkles size={12} /> Dilbilgisi Karşılaştırması (Yapay Zeka)
-                      </div>
-                      {aiExplanation}
-                    </div>
-                  ) : (
-                    <Button
-                      type="default"
-                      style={{
-                        fontSize: '0.75rem',
-                        margin: '0 auto',
-                        height: 'auto',
-                        padding: '0.4rem 0.75rem'
-                      }}
-                      icon={isAiLoading ? <LoadingOutlined /> : <Sparkles size={12} style={{ color: 'var(--accent-color)' }} />}
-                      onClick={(e) => handleGetAiExplanation(e, currentCard)}
-                      disabled={isAiLoading}
-                    >
-                      {isAiLoading ? 'Açıklama Yükleniyor...' : 'AI Gramer Açıklaması (Almanca vs Türkçe)'}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <StudyCard
+            key={currentCard.id}
+            card={currentCard}
+            isFlipped={isFlipped}
+            onFlip={() => setIsFlipped(!isFlipped)}
+            cardVisible={cardVisible}
+            apiKey={apiKey}
+          />
 
           {/* SM-2 Spaced Repetition Buttons */}
           {isFlipped && (

@@ -19,7 +19,11 @@ const { Sider, Content } = Layout;
 export default function App() {
   const [activeRoute, setActiveRoute] = useState<string>('dashboard');
   const [decks, setDecks] = useState<Deck[]>([]);
-  const [config, setConfig] = useState<AppConfig>({ apiKey: '', fontSize: 'small', theme: 'light' });
+  const [config, setConfig] = useState<AppConfig>({
+    apiKey: '',
+    fontSize: 'small',
+    theme: 'light'
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   // Load Decks & Configurations on startup
@@ -30,7 +34,15 @@ export default function App() {
           const loadedDecks = await window.electronAPI.getDecks();
           const loadedConfig = await window.electronAPI.getConfig();
           setDecks(loadedDecks || []);
-          setConfig(loadedConfig || { apiKey: '', studyHistory: [], quizHistory: [], fontSize: 'small', theme: 'light' });
+          setConfig(
+            loadedConfig || {
+              apiKey: '',
+              studyHistory: [],
+              quizHistory: [],
+              fontSize: 'small',
+              theme: 'light'
+            }
+          );
         } else {
           console.warn('Electron API bulunamadı, tarayıcı modunda çalışıyor.');
         }
@@ -62,7 +74,10 @@ export default function App() {
       root.style.setProperty('--bg-transparent', 'rgba(15, 23, 42, 0.04)');
       root.style.setProperty('--bg-trans-light', 'rgba(15, 23, 42, 0.02)');
       root.style.setProperty('--border-trans', 'rgba(15, 23, 42, 0.08)');
-      root.style.setProperty('--card-front-bg', 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)');
+      root.style.setProperty(
+        '--card-front-bg',
+        'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)'
+      );
       root.style.setProperty('--card-back-bg', 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)');
     } else {
       // dark
@@ -79,8 +94,14 @@ export default function App() {
       root.style.setProperty('--bg-transparent', 'rgba(9, 11, 17, 0.4)');
       root.style.setProperty('--bg-trans-light', 'rgba(255, 255, 255, 0.03)');
       root.style.setProperty('--border-trans', 'rgba(255, 255, 255, 0.05)');
-      root.style.setProperty('--card-front-bg', 'radial-gradient(circle at top right, #1d253f, #111627)');
-      root.style.setProperty('--card-back-bg', 'radial-gradient(circle at top right, #161e38, #0e1220)');
+      root.style.setProperty(
+        '--card-front-bg',
+        'radial-gradient(circle at top right, #1d253f, #111627)'
+      );
+      root.style.setProperty(
+        '--card-back-bg',
+        'radial-gradient(circle at top right, #161e38, #0e1220)'
+      );
     }
   }, [config.theme]);
 
@@ -326,19 +347,41 @@ export default function App() {
     );
   }
 
+  const uiSize = config.fontSize || 'small';
+  const isMedium = uiSize === 'medium';
+  const isLarge = uiSize === 'large';
+
+  const antDesignTokens = {
+    fontSize: isLarge ? 22 : isMedium ? 18 : 14,
+    paddingXS: isLarge ? 12 : isMedium ? 10 : 8,
+    paddingSM: isLarge ? 16 : isMedium ? 14 : 12,
+    padding: isLarge ? 24 : isMedium ? 20 : 16,
+    paddingMD: isLarge ? 28 : isMedium ? 24 : 20,
+    paddingLG: isLarge ? 36 : isMedium ? 28 : 24,
+    paddingXL: isLarge ? 48 : isMedium ? 38 : 32,
+    marginXS: isLarge ? 12 : isMedium ? 10 : 8,
+    marginSM: isLarge ? 16 : isMedium ? 14 : 12,
+    margin: isLarge ? 24 : isMedium ? 20 : 16,
+    marginMD: isLarge ? 28 : isMedium ? 24 : 20,
+    marginLG: isLarge ? 36 : isMedium ? 28 : 24,
+    marginXL: isLarge ? 48 : isMedium ? 38 : 32,
+    borderRadius: isLarge ? 12 : isMedium ? 10 : 8,
+    controlHeight: isLarge ? 44 : isMedium ? 38 : 32,
+    controlHeightSM: isLarge ? 32 : isMedium ? 28 : 24,
+    controlHeightLG: isLarge ? 52 : isMedium ? 46 : 40,
+    colorPrimary: config.theme === 'dark' ? '#8b5cf6' : '#7c3aed',
+    colorBgContainer: config.theme === 'dark' ? '#1e293b' : '#ffffff',
+    colorBgElevated: config.theme === 'dark' ? '#334155' : '#f1f5f9',
+    colorBorder: config.theme === 'dark' ? '#475569' : '#cbd5e1',
+    colorBgLayout: config.theme === 'dark' ? '#0f172a' : '#f8fafc',
+    colorTextBase: config.theme === 'dark' ? '#f8fafc' : '#0f172a'
+  };
+
   return (
     <ConfigProvider
       theme={{
         algorithm: config.theme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-        token: {
-          fontSize: config.fontSize === 'large' ? 22 : config.fontSize === 'medium' ? 18 : 14,
-          colorPrimary: config.theme === 'dark' ? '#8b5cf6' : '#7c3aed',
-          colorBgContainer: config.theme === 'dark' ? '#1e293b' : '#ffffff',
-          colorBgElevated: config.theme === 'dark' ? '#334155' : '#f1f5f9',
-          colorBorder: config.theme === 'dark' ? '#475569' : '#cbd5e1',
-          colorBgLayout: config.theme === 'dark' ? '#0f172a' : '#f8fafc',
-          colorTextBase: config.theme === 'dark' ? '#f8fafc' : '#0f172a'
-        }
+        token: antDesignTokens
       }}
     >
       <Layout style={{ minHeight: '100vh', background: 'var(--bg-main)' }}>
@@ -367,7 +410,10 @@ export default function App() {
             }}
           >
             <div>
-              <div className="logo-container" style={{ paddingLeft: '1.5rem', marginBottom: '2rem' }}>
+              <div
+                className="logo-container"
+                style={{ paddingLeft: '1.5rem', marginBottom: '2rem' }}
+              >
                 <GraduationCap className="logo-icon" size={28} />
                 <span className="logo-text">FlaschDeck</span>
               </div>
@@ -476,4 +522,3 @@ export default function App() {
     </ConfigProvider>
   );
 }
-

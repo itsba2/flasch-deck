@@ -597,7 +597,9 @@ export default function Dashboard({
               }}
             >
               <span style={{ color: 'var(--text-secondary)' }}>Yarın (24 Saat içinde):</span>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{dueTomorrow} kelime</span>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                {dueTomorrow} kelime
+              </span>
             </div>
             <div
               style={{
@@ -609,7 +611,9 @@ export default function Dashboard({
               }}
             >
               <span style={{ color: 'var(--text-secondary)' }}>3 Gün içinde:</span>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{dueIn3Days} kelime</span>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                {dueIn3Days} kelime
+              </span>
             </div>
             <div
               style={{
@@ -620,7 +624,9 @@ export default function Dashboard({
               }}
             >
               <span style={{ color: 'var(--text-secondary)' }}>7 Gün içinde:</span>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{dueIn7Days} kelime</span>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                {dueIn7Days} kelime
+              </span>
             </div>
           </div>
         </div>
@@ -639,7 +645,9 @@ export default function Dashboard({
           className="glass-card"
           style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
         >
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>Öğrenme Durumu</h3>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            Öğrenme Durumu
+          </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
               <div
@@ -651,7 +659,9 @@ export default function Dashboard({
                 }}
               >
                 <span style={{ color: 'var(--text-secondary)' }}>Öğrenilen Kelimeler</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{learningCount}</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {learningCount}
+                </span>
               </div>
               <div
                 style={{
@@ -684,7 +694,9 @@ export default function Dashboard({
                 <span style={{ color: 'var(--text-secondary)' }}>
                   Ustalaşılan Kelimeler (Uzun Vade)
                 </span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{masteredCount}</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {masteredCount}
+                </span>
               </div>
               <div
                 style={{
@@ -812,7 +824,9 @@ export default function Dashboard({
                     />
                     {labels[type]}
                   </span>
-                  <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  <span
+                    style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}
+                  >
                     {types[type]}
                   </span>
                 </div>
@@ -882,7 +896,13 @@ export default function Dashboard({
                         <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>
                           {qDate}
                         </td>
-                        <td style={{ padding: '0.75rem 1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        <td
+                          style={{
+                            padding: '0.75rem 1rem',
+                            fontWeight: 600,
+                            color: 'var(--text-primary)'
+                          }}
+                        >
                           {q.deckName}
                         </td>
                         <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>

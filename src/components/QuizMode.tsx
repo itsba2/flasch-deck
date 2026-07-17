@@ -1,8 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { Play, RotateCcw, Check, X, Timer } from 'lucide-react';
-import { Select, Segmented, Button, Card, Typography, Space, Input, Row, Col, Statistic, Result } from 'antd';
+import {
+  Select,
+  Segmented,
+  Button,
+  Card,
+  Typography,
+  Space,
+  Input,
+  Row,
+  Col,
+  Statistic,
+  Result
+} from 'antd';
 import { ArrowRightOutlined } from '@ant-design/icons';
 import { Card as CardType, Deck, QuizHistoryItem } from '../global';
+import GenderBadge from './common/GenderBadge';
 
 const { Title, Text } = Typography;
 
@@ -327,7 +340,9 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
           <Card bordered={true}>
             <Space direction="vertical" size="large" style={{ display: 'flex', width: '100%' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <Text type="secondary" style={{ fontWeight: 500 }}>Deste Seçimi</Text>
+                <Text type="secondary" style={{ fontWeight: 500 }}>
+                  Deste Seçimi
+                </Text>
                 <Select
                   value={selectedDeckId}
                   onChange={(val) => setSelectedDeckId(val)}
@@ -346,7 +361,9 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <Text type="secondary" style={{ fontWeight: 500 }}>Test Türü</Text>
+                <Text type="secondary" style={{ fontWeight: 500 }}>
+                  Test Türü
+                </Text>
                 <Segmented
                   options={[
                     { label: 'Yazım Denetimi', value: 'spelling' },
@@ -371,9 +388,11 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                   Quizi Başlat (10 Soru)
                 </Button>
               ) : (
-                <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                  Bu deste ve test türünde soru bulunamadı. Lütfen kelime türlerini (örneğin isimler)
-                  veya desteyi değiştirin.
+                <div
+                  style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}
+                >
+                  Bu deste ve test türünde soru bulunamadı. Lütfen kelime türlerini (örneğin
+                  isimler) veya desteyi değiştirin.
                 </div>
               )}
             </Space>
@@ -427,14 +446,33 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
           >
             {/* Question Definition */}
             <div style={{ textAlign: 'center' }}>
-              <Text type="secondary" style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: '0.75rem',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  letterSpacing: '0.5px'
+                }}
+              >
                 Kelimenin Türkçe Anlamı
               </Text>
-              <Title level={2} style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0.5rem 0 0 0' }}>
+              <Title
+                level={2}
+                style={{
+                  fontSize: '2.5rem',
+                  fontWeight: 800,
+                  color: 'var(--text-primary)',
+                  margin: '0.5rem 0 0 0'
+                }}
+              >
                 {currentCard.turkish}
               </Title>
               {currentCard.type === 'noun' && quizType !== 'articles' && (
-                <Text type="secondary" style={{ fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>
+                <Text
+                  type="secondary"
+                  style={{ fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}
+                >
                   (İsim - Lütfen artikeli {quizType === 'mixed' ? 'dahil ederek' : 'olmadan'} yazın)
                 </Text>
               )}
@@ -469,7 +507,9 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                     marginBottom: '0.25rem'
                   }}
                 >
-                  <Text type="secondary" style={{ fontSize: '0.8rem' }}>Artikel Seçin:</Text>
+                  <Text type="secondary" style={{ fontSize: '0.8rem' }}>
+                    Artikel Seçin:
+                  </Text>
                   <Segmented
                     options={[
                       { label: 'DER', value: 'der' },
@@ -485,19 +525,20 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
               {/* Text input for Spelling and Mixed */}
               {quizType !== 'articles' && (
                 <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
-                  {checked && currentCard.type === 'noun' && quizType === 'mixed' && (
-                    <span
-                      className={`badge-gender badge-${currentCard.article || 'der'}`}
-                      style={{
-                        display: 'inline-flex',
-                        alignSelf: 'center',
-                        fontSize: '1rem',
-                        padding: '0.6rem 1rem'
-                      }}
-                    >
-                      {currentCard.article}
-                    </span>
-                  )}
+                  {checked &&
+                    currentCard.type === 'noun' &&
+                    quizType === 'mixed' &&
+                    currentCard.article && (
+                      <GenderBadge
+                        article={currentCard.article}
+                        style={{
+                          display: 'inline-flex',
+                          alignSelf: 'center',
+                          fontSize: '1rem',
+                          padding: '0.6rem 1rem'
+                        }}
+                      />
+                    )}
                   <Input
                     size="large"
                     value={userAnswer}
@@ -531,7 +572,14 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                   textAlign: 'center'
                 }}
               >
-                <Space size="small" style={{ fontWeight: 700, fontSize: '1.1rem', color: isCorrect ? 'var(--success)' : 'var(--danger)' }}>
+                <Space
+                  size="small"
+                  style={{
+                    fontWeight: 700,
+                    fontSize: '1.1rem',
+                    color: isCorrect ? 'var(--success)' : 'var(--danger)'
+                  }}
+                >
                   {isCorrect ? <Check size={20} /> : <X size={20} />}
                   <span>{isCorrect ? 'Doğru!' : 'Hatalı!'}</span>
                 </Space>
@@ -615,8 +663,14 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
           <Card bordered={true}>
             <Result
               status="success"
-              title={<span style={{ color: 'var(--text-primary)', fontSize: '2rem', fontWeight: 800 }}>Quiz Tamamlandı!</span>}
-              subTitle={<Text type="secondary">Performans istatistikleriniz aşağıda listelenmiştir.</Text>}
+              title={
+                <span style={{ color: 'var(--text-primary)', fontSize: '2rem', fontWeight: 800 }}>
+                  Quiz Tamamlandı!
+                </span>
+              }
+              subTitle={
+                <Text type="secondary">Performans istatistikleriniz aşağıda listelenmiştir.</Text>
+              }
               extra={[
                 <Row
                   gutter={[16, 16]}
@@ -666,7 +720,11 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                     }}
                     key="errors"
                   >
-                    <Text strong type="secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                    <Text
+                      strong
+                      type="secondary"
+                      style={{ display: 'block', marginBottom: '0.5rem' }}
+                    >
                       Hatalı Yapılan Kelimeler:
                     </Text>
                     <div
@@ -694,12 +752,12 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                             }}
                           >
                             <Text>
-                              <strong style={{ color: 'var(--text-primary)' }}>{h.card.german}</strong> (
-                              {h.card.turkish})
+                              <strong style={{ color: 'var(--text-primary)' }}>
+                                {h.card.german}
+                              </strong>{' '}
+                              ({h.card.turkish})
                             </Text>
-                            <Text type="danger">
-                              Cevabınız: {h.answer || '(Süre bitti)'}
-                            </Text>
+                            <Text type="danger">Cevabınız: {h.answer || '(Süre bitti)'}</Text>
                           </div>
                         ))}
                     </div>

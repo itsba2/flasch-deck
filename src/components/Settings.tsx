@@ -39,23 +39,26 @@ export default function Settings({ config, onSaveConfig, onResetApp }: SettingsP
   const handleFontSizeChange = async (val: 'small' | 'medium' | 'large') => {
     try {
       await onSaveConfig({ ...config, fontSize: val });
-      message.success('Yazı boyutu güncellendi!');
+      message.success('Arayüz boyutu güncellendi!');
     } catch {
-      message.error('Yazı boyutu güncellenirken hata oluştu.');
+      message.error('Arayüz boyutu güncellenirken hata oluştu.');
     }
   };
 
   const handleReset = () => {
     Modal.confirm({
       title: 'Uygulama Verilerini Sıfırla',
-      content: 'DİKKAT! Tüm destelerinizi ve kartlarınızı silerek uygulamayı sıfırlamak istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      content:
+        'DİKKAT! Tüm destelerinizi ve kartlarınızı silerek uygulamayı sıfırlamak istediğinize emin misiniz? Bu işlem geri alınamaz.',
       okText: 'Evet, Sıfırla',
       okType: 'danger',
       cancelText: 'Vazgeç',
       onOk: async () => {
         try {
           await onResetApp();
-          message.success('Uygulama başarıyla sıfırlandı ve varsayılan Almanca A1 destesi yüklendi.');
+          message.success(
+            'Uygulama başarıyla sıfırlandı ve varsayılan Almanca A1 destesi yüklendi.'
+          );
         } catch {
           message.error('Sıfırlama sırasında hata oluştu.');
         }
@@ -64,12 +67,20 @@ export default function Settings({ config, onSaveConfig, onResetApp }: SettingsP
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '700px', width: '100%' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2rem',
+        maxWidth: '700px',
+        width: '100%'
+      }}
+    >
       <div>
-        <Title level={2} style={{ margin: 0 }}>Ayarlar</Title>
-        <Text type="secondary">
-          Uygulama tercihlerini ve yerel veri yapılandırmasını yönetin.
-        </Text>
+        <Title level={2} style={{ margin: 0 }}>
+          Ayarlar
+        </Title>
+        <Text type="secondary">Uygulama tercihlerini ve yerel veri yapılandırmasını yönetin.</Text>
       </div>
 
       {/* 1. Appearance Config */}
@@ -86,7 +97,9 @@ export default function Settings({ config, onSaveConfig, onResetApp }: SettingsP
       >
         <Space direction="vertical" size="middle" style={{ display: 'flex', width: '100%' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <Text type="secondary" style={{ fontWeight: 500 }}>Tema Tercihi</Text>
+            <Text type="secondary" style={{ fontWeight: 500 }}>
+              Tema Tercihi
+            </Text>
             <Segmented
               options={[
                 { label: 'Pozitif Enerji (Açık)', value: 'light' },
@@ -100,12 +113,14 @@ export default function Settings({ config, onSaveConfig, onResetApp }: SettingsP
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <Text type="secondary" style={{ fontWeight: 500 }}>Yazı Boyutu</Text>
+            <Text type="secondary" style={{ fontWeight: 500 }}>
+              Arayüz Boyutu
+            </Text>
             <Segmented
               options={[
-                { label: '14px (Küçük)', value: 'small' },
-                { label: '18px (Orta)', value: 'medium' },
-                { label: '22px (Büyük)', value: 'large' }
+                { label: 'Küçük', value: 'small' },
+                { label: 'Orta', value: 'medium' },
+                { label: 'Büyük', value: 'large' }
               ]}
               value={config.fontSize || 'small'}
               onChange={(val) => handleFontSizeChange(val as 'small' | 'medium' | 'large')}
@@ -129,16 +144,26 @@ export default function Settings({ config, onSaveConfig, onResetApp }: SettingsP
         bordered={true}
       >
         <Space direction="vertical" size="middle" style={{ display: 'flex', width: '100%' }}>
-          <Text type="secondary" style={{ fontSize: '0.85rem', lineHeight: '1.4', display: 'block' }}>
+          <Text
+            type="secondary"
+            style={{ fontSize: '0.85rem', lineHeight: '1.4', display: 'block' }}
+          >
             Uygulamada kelime kartı eklerken <strong>"Yapay Zeka ile Doldur"</strong> butonunu
-            kullanmak ve Almanca vs Türkçe dilbilgisi karşılaştırma açıklamaları almak için bir Google
-            Gemini API anahtarı ekleyebilirsiniz. API anahtarınız{' '}
+            kullanmak ve Almanca vs Türkçe dilbilgisi karşılaştırma açıklamaları almak için bir
+            Google Gemini API anahtarı ekleyebilirsiniz. API anahtarınız{' '}
             <strong>tamamen yerel olarak</strong> bilgisayarınızda saklanır ve doğrudan Google
             sunucularına gönderilir.
           </Text>
 
           <Form layout="vertical" onFinish={handleSave}>
-            <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Gemini API Anahtarı (API Key)</span>} required>
+            <Form.Item
+              label={
+                <span style={{ color: 'var(--text-secondary)' }}>
+                  Gemini API Anahtarı (API Key)
+                </span>
+              }
+              required
+            >
               <Input.Password
                 value={keyInput}
                 onChange={(e) => setKeyInput(e.target.value)}
@@ -238,8 +263,9 @@ export default function Settings({ config, onSaveConfig, onResetApp }: SettingsP
       >
         <Space direction="vertical" size="middle" style={{ display: 'flex', width: '100%' }}>
           <Text type="secondary" style={{ fontSize: '0.85rem', display: 'block' }}>
-            Uygulamayı ilk yükleme durumuna döndürür. Tüm oluşturduğunuz kelime kartları, eklediğiniz
-            desteler ve geçmiş öğrenme verileriniz kalıcı olarak <strong>silinir</strong>.
+            Uygulamayı ilk yükleme durumuna döndürür. Tüm oluşturduğunuz kelime kartları,
+            eklediğiniz desteler ve geçmiş öğrenme verileriniz kalıcı olarak{' '}
+            <strong>silinir</strong>.
           </Text>
 
           <Button type="primary" danger size="large" onClick={handleReset}>

@@ -4,12 +4,7 @@
   "directories": {
     "output": "dist-releases"
   },
-  "files": [
-    "dist/**/*",
-    "main.js",
-    "preload.js",
-    "package.json"
-  ],
+  "files": ["dist/**/*", "main.js", "preload.js", "package.json"],
   "win": {
     "target": [
       {
