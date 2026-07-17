@@ -3,6 +3,9 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
+// Disable hardware acceleration to bypass GPU/WebGL errors in virtualized environments
+app.disableHardwareAcceleration();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

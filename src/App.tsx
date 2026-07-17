@@ -6,7 +6,7 @@ import {
   Trophy,
   Settings as SettingsIcon
 } from 'lucide-react';
-import { ConfigProvider, theme } from 'antd';
+import { ConfigProvider, theme, Layout, Menu, Spin, message } from 'antd';
 import Dashboard from './components/Dashboard';
 import DeckManager from './components/DeckManager';
 import StudySession from './components/StudySession';
@@ -14,10 +14,12 @@ import QuizMode from './components/QuizMode';
 import Settings from './components/Settings';
 import { Card, Deck, AppConfig, StudyHistoryItem, QuizHistoryItem } from './global';
 
+const { Sider, Content } = Layout;
+
 export default function App() {
   const [activeRoute, setActiveRoute] = useState<string>('dashboard');
   const [decks, setDecks] = useState<Deck[]>([]);
-  const [config, setConfig] = useState<AppConfig>({ apiKey: '' });
+  const [config, setConfig] = useState<AppConfig>({ apiKey: '', fontSize: 'small', theme: 'light' });
   const [isLoading, setIsLoading] = useState(true);
 
   // Load Decks & Configurations on startup
@@ -28,7 +30,7 @@ export default function App() {
           const loadedDecks = await window.electronAPI.getDecks();
           const loadedConfig = await window.electronAPI.getConfig();
           setDecks(loadedDecks || []);
-          setConfig(loadedConfig || { apiKey: '', studyHistory: [], quizHistory: [] });
+          setConfig(loadedConfig || { apiKey: '', studyHistory: [], quizHistory: [], fontSize: 'small', theme: 'light' });
         } else {
           console.warn('Electron API bulunamadı, tarayıcı modunda çalışıyor.');
         }
@@ -40,6 +42,58 @@ export default function App() {
     }
     loadData();
   }, []);
+
+  // Update theme and font-size dynamically
+  useEffect(() => {
+    const root = document.documentElement;
+    const themeMode = config.theme || 'light';
+
+    if (themeMode === 'light') {
+      root.style.setProperty('--bg-main', '#f8fafc');
+      root.style.setProperty('--bg-sidebar', '#ffffff');
+      root.style.setProperty('--bg-card', '#ffffff');
+      root.style.setProperty('--bg-card-hover', '#f1f5f9');
+      root.style.setProperty('--border-color', '#cbd5e1');
+      root.style.setProperty('--border-hover', '#94a3b8');
+      root.style.setProperty('--text-primary', '#0f172a');
+      root.style.setProperty('--text-secondary', '#475569');
+      root.style.setProperty('--text-muted', '#64748b');
+
+      root.style.setProperty('--bg-transparent', 'rgba(15, 23, 42, 0.04)');
+      root.style.setProperty('--bg-trans-light', 'rgba(15, 23, 42, 0.02)');
+      root.style.setProperty('--border-trans', 'rgba(15, 23, 42, 0.08)');
+      root.style.setProperty('--card-front-bg', 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)');
+      root.style.setProperty('--card-back-bg', 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)');
+    } else {
+      // dark
+      root.style.setProperty('--bg-main', '#090b11');
+      root.style.setProperty('--bg-sidebar', '#0f131f');
+      root.style.setProperty('--bg-card', '#151b2e');
+      root.style.setProperty('--bg-card-hover', '#1e263f');
+      root.style.setProperty('--border-color', '#263152');
+      root.style.setProperty('--border-hover', '#3d4e80');
+      root.style.setProperty('--text-primary', '#f1f5f9');
+      root.style.setProperty('--text-secondary', '#94a3b8');
+      root.style.setProperty('--text-muted', '#64748b');
+
+      root.style.setProperty('--bg-transparent', 'rgba(9, 11, 17, 0.4)');
+      root.style.setProperty('--bg-trans-light', 'rgba(255, 255, 255, 0.03)');
+      root.style.setProperty('--border-trans', 'rgba(255, 255, 255, 0.05)');
+      root.style.setProperty('--card-front-bg', 'radial-gradient(circle at top right, #1d253f, #111627)');
+      root.style.setProperty('--card-back-bg', 'radial-gradient(circle at top right, #161e38, #0e1220)');
+    }
+  }, [config.theme]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const size = config.fontSize || 'small';
+    const sizeMap = {
+      small: '14px',
+      medium: '18px',
+      large: '22px'
+    };
+    root.style.setProperty('font-size', sizeMap[size]);
+  }, [config.fontSize]);
 
   // Save or update deck in both state and local file
   const handleSaveDeck = async (updatedDeck: Deck) => {
@@ -82,9 +136,9 @@ export default function App() {
         const result = await window.electronAPI.importDeck();
         if (result.success && result.deck) {
           setDecks((prevDecks) => [...prevDecks, result.deck!]);
-          alert(`"${result.deck.name}" başarıyla içe aktarıldı!`);
+          message.success(`"${result.deck.name}" başarıyla içe aktarıldı!`);
         } else if (result.error) {
-          alert(result.error);
+          message.error(result.error);
         }
       }
     } catch (e) {
@@ -98,7 +152,7 @@ export default function App() {
       if (window.electronAPI) {
         const result = await window.electronAPI.exportDeck(deck);
         if (result.success) {
-          alert('Deste başarıyla dışarı aktarıldı!');
+          message.success('Deste başarıyla dışarı aktarıldı!');
         }
       }
     } catch (e) {
@@ -264,30 +318,10 @@ export default function App() {
           width: '100vw',
           justifyContent: 'center',
           alignItems: 'center',
-          background: 'var(--bg-main)',
-          color: '#fff'
+          background: 'var(--bg-main)'
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <h2 style={{ marginBottom: '1rem', fontWeight: 650 }}>Veriler Yükleniyor...</h2>
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              border: '3px solid var(--accent-light)',
-              borderTopColor: 'var(--accent-color)',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-              margin: '0 auto'
-            }}
-          />
-          <style>{`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}</style>
-        </div>
+        <Spin size="large" tip="Veriler Yükleniyor..." style={{ color: '#fff' }} />
       </div>
     );
   }
@@ -295,113 +329,151 @@ export default function App() {
   return (
     <ConfigProvider
       theme={{
-        algorithm: theme.darkAlgorithm,
+        algorithm: config.theme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
-          colorPrimary: '#7c3aed',
-          colorBgContainer: '#151b2e',
-          colorBgElevated: '#0f131f',
-          colorBorder: '#263152',
-          colorBgLayout: '#090b11',
-          colorTextBase: '#f1f5f9'
+          fontSize: config.fontSize === 'large' ? 22 : config.fontSize === 'medium' ? 18 : 14,
+          colorPrimary: config.theme === 'dark' ? '#8b5cf6' : '#7c3aed',
+          colorBgContainer: config.theme === 'dark' ? '#1e293b' : '#ffffff',
+          colorBgElevated: config.theme === 'dark' ? '#334155' : '#f1f5f9',
+          colorBorder: config.theme === 'dark' ? '#475569' : '#cbd5e1',
+          colorBgLayout: config.theme === 'dark' ? '#0f172a' : '#f8fafc',
+          colorTextBase: config.theme === 'dark' ? '#f8fafc' : '#0f172a'
         }
       }}
     >
-      <div className="app-container">
+      <Layout style={{ minHeight: '100vh', background: 'var(--bg-main)' }}>
         {/* Sidebar Navigation */}
-        <aside className="sidebar">
-          <div>
-            <div className="logo-container">
-              <GraduationCap className="logo-icon" size={28} />
-              <span className="logo-text">FlaschDeck</span>
+        <Sider
+          width={260}
+          theme={config.theme || 'light'}
+          style={{
+            background: 'var(--bg-sidebar)',
+            borderRight: '1px solid var(--border-color)',
+            height: '100vh',
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            overflowY: 'auto'
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+              justifyContent: 'space-between',
+              padding: '1.5rem 0'
+            }}
+          >
+            <div>
+              <div className="logo-container" style={{ paddingLeft: '1.5rem', marginBottom: '2rem' }}>
+                <GraduationCap className="logo-icon" size={28} />
+                <span className="logo-text">FlaschDeck</span>
+              </div>
+
+              <Menu
+                mode="inline"
+                theme={config.theme || 'light'}
+                selectedKeys={[activeRoute === 'settings' ? '' : activeRoute]}
+                onClick={({ key }) => setActiveRoute(key)}
+                style={{ background: 'transparent', borderRight: 0 }}
+                items={[
+                  {
+                    key: 'dashboard',
+                    icon: <LayoutDashboard size={18} />,
+                    label: 'Kontrol Paneli'
+                  },
+                  {
+                    key: 'decks',
+                    icon: <BookOpen size={18} />,
+                    label: 'Destelerim'
+                  },
+                  {
+                    key: 'study',
+                    icon: <GraduationCap size={18} />,
+                    label: 'Kart Çalışması'
+                  },
+                  {
+                    key: 'quiz',
+                    icon: <Trophy size={18} />,
+                    label: 'Quiz Arenası'
+                  }
+                ]}
+              />
             </div>
 
-            <nav className="nav-links">
-              <div
-                className={`nav-item ${activeRoute === 'dashboard' ? 'active' : ''}`}
-                onClick={() => setActiveRoute('dashboard')}
-              >
-                <LayoutDashboard className="nav-item-icon" />
-                <span>Kontrol Paneli</span>
-              </div>
-
-              <div
-                className={`nav-item ${activeRoute === 'decks' ? 'active' : ''}`}
-                onClick={() => setActiveRoute('decks')}
-              >
-                <BookOpen className="nav-item-icon" />
-                <span>Destelerim</span>
-              </div>
-
-              <div
-                className={`nav-item ${activeRoute === 'study' ? 'active' : ''}`}
-                onClick={() => setActiveRoute('study')}
-              >
-                <GraduationCap className="nav-item-icon" />
-                <span>Kart Çalışması</span>
-              </div>
-
-              <div
-                className={`nav-item ${activeRoute === 'quiz' ? 'active' : ''}`}
-                onClick={() => setActiveRoute('quiz')}
-              >
-                <Trophy className="nav-item-icon" />
-                <span>Quiz Arenası</span>
-              </div>
-            </nav>
-          </div>
-
-          <div className="sidebar-footer">
-            <div
-              className={`nav-item ${activeRoute === 'settings' ? 'active' : ''}`}
-              onClick={() => setActiveRoute('settings')}
-            >
-              <SettingsIcon className="nav-item-icon" />
-              <span>Ayarlar</span>
+            <div style={{ padding: '0 1rem' }}>
+              <Menu
+                mode="inline"
+                theme={config.theme || 'light'}
+                selectedKeys={[activeRoute === 'settings' ? 'settings' : '']}
+                onClick={({ key }) => setActiveRoute(key)}
+                style={{ background: 'transparent', borderRight: 0 }}
+                items={[
+                  {
+                    key: 'settings',
+                    icon: <SettingsIcon size={18} />,
+                    label: 'Ayarlar'
+                  }
+                ]}
+              />
             </div>
           </div>
-        </aside>
+        </Sider>
 
-        {/* Main Content Router */}
-        <main className="main-content">
-          {activeRoute === 'dashboard' && (
-            <Dashboard
-              decks={decks}
-              studyHistory={config.studyHistory || []}
-              quizHistory={config.quizHistory || []}
-              onNavigate={setActiveRoute}
-            />
-          )}
-          {activeRoute === 'decks' && (
-            <DeckManager
-              decks={decks}
-              onSaveDeck={handleSaveDeck}
-              onDeleteDeck={handleDeleteDeck}
-              onImportDeck={handleImportDeck}
-              onExportDeck={handleExportDeck}
-              apiKey={config.apiKey}
-            />
-          )}
-          {activeRoute === 'study' && (
-            <StudySession
-              decks={decks}
-              onUpdateCard={handleUpdateCard}
-              onNavigate={setActiveRoute}
-              apiKey={config.apiKey}
-              onLogStudySession={handleLogStudySession}
-            />
-          )}
-          {activeRoute === 'quiz' && (
-            <QuizMode decks={decks} onLogQuizSession={handleLogQuizSession} />
-          )}
-          {activeRoute === 'settings' && (
-            <Settings
-              apiKey={config.apiKey}
-              onSaveConfig={handleSaveConfig}
-              onResetApp={handleResetApp}
-            />
-          )}
-        </main>
-      </div>
+        {/* Main Content Area */}
+        <Layout style={{ marginLeft: 260, background: 'transparent' }}>
+          <Content
+            style={{
+              padding: '2rem',
+              overflowY: 'auto',
+              height: '100vh',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            {activeRoute === 'dashboard' && (
+              <Dashboard
+                decks={decks}
+                studyHistory={config.studyHistory || []}
+                quizHistory={config.quizHistory || []}
+                onNavigate={setActiveRoute}
+              />
+            )}
+            {activeRoute === 'decks' && (
+              <DeckManager
+                decks={decks}
+                onSaveDeck={handleSaveDeck}
+                onDeleteDeck={handleDeleteDeck}
+                onImportDeck={handleImportDeck}
+                onExportDeck={handleExportDeck}
+                apiKey={config.apiKey}
+              />
+            )}
+            {activeRoute === 'study' && (
+              <StudySession
+                decks={decks}
+                onUpdateCard={handleUpdateCard}
+                onNavigate={setActiveRoute}
+                apiKey={config.apiKey}
+                onLogStudySession={handleLogStudySession}
+              />
+            )}
+            {activeRoute === 'quiz' && (
+              <QuizMode decks={decks} onLogQuizSession={handleLogQuizSession} />
+            )}
+            {activeRoute === 'settings' && (
+              <Settings
+                config={config}
+                onSaveConfig={handleSaveConfig}
+                onResetApp={handleResetApp}
+              />
+            )}
+          </Content>
+        </Layout>
+      </Layout>
     </ConfigProvider>
   );
 }
+

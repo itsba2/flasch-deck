@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, RotateCcw, Check, X, Timer, Award, ArrowRight } from 'lucide-react';
-import { Card, Deck, QuizHistoryItem } from '../global';
+import { Play, RotateCcw, Check, X, Timer } from 'lucide-react';
+import { Select, Segmented, Button, Card, Typography, Space, Input, Row, Col, Statistic, Result } from 'antd';
+import { ArrowRightOutlined } from '@ant-design/icons';
+import { Card as CardType, Deck, QuizHistoryItem } from '../global';
+
+const { Title, Text } = Typography;
 
 interface QuizModeProps {
   decks: Deck[];
@@ -8,7 +12,7 @@ interface QuizModeProps {
 }
 
 interface QuizHistoryDetail {
-  card: Card;
+  card: CardType;
   answer: string;
   isCorrect: boolean;
 }
@@ -27,7 +31,7 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
   const [quizFinished, setQuizFinished] = useState(false);
 
   // Quiz cards state
-  const [quizCards, setQuizCards] = useState<Card[]>([]);
+  const [quizCards, setQuizCards] = useState<CardType[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
   const [selectedArticle, setSelectedArticle] = useState(''); // for article quiz
@@ -47,7 +51,7 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
   });
 
   const getQuizCardsCount = (deckId: string, type: 'spelling' | 'articles' | 'mixed') => {
-    let cards: Card[] = [];
+    let cards: CardType[] = [];
     if (deckId === 'all') {
       decks.forEach((d) => cards.push(...d.cards));
     } else {
@@ -63,7 +67,7 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
 
   // Start the Quiz
   const startQuiz = () => {
-    let cards: Card[] = [];
+    let cards: CardType[] = [];
     if (selectedDeckId === 'all') {
       decks.forEach((d) => cards.push(...d.cards));
     } else {
@@ -115,6 +119,7 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizActive, checked, timeLeft]);
 
   // Handle Verify/Answer Submission
@@ -257,7 +262,7 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
           flexDirection: 'column',
           gap: '0.5rem',
           marginTop: '0.75rem',
-          background: 'rgba(9, 11, 17, 0.4)',
+          background: 'var(--bg-transparent)',
           padding: '0.85rem',
           borderRadius: '12px',
           border: '1px solid var(--border-color)',
@@ -307,83 +312,72 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
         flexDirection: 'column',
         gap: '1.5rem',
         height: '100%',
-        alignItems: 'center'
+        alignItems: 'center',
+        width: '100%'
       }}
     >
       {/* 1. Setup screen */}
       {!quizActive && !quizFinished && (
         <div style={{ maxWidth: '600px', width: '100%' }}>
           <div style={{ marginBottom: '2rem' }}>
-            <h1 className="page-title">Hızlı Quiz Arenası</h1>
-            <p className="page-subtitle">Seçtiğiniz destelerle yazım ve artikel bilginizi ölçün.</p>
+            <Title level={2}>Hızlı Quiz Arenası</Title>
+            <Text type="secondary">Seçtiğiniz destelerle yazım ve artikel bilginizi ölçün.</Text>
           </div>
 
-          <div
-            className="glass-card"
-            style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
-          >
-            <div className="form-group">
-              <label className="form-label">Deste Seçimi</label>
-              <select
-                className="form-select"
-                value={selectedDeckId}
-                onChange={(e) => setSelectedDeckId(e.target.value)}
-              >
-                <option value="all">
-                  Bütün Desteler ({getQuizCardsCount('all', quizType)} kelime)
-                </option>
-                {decks.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name} ({getQuizCardsCount(d.id, quizType)} kelime)
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Test Türü</label>
-              <div
-                style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}
-              >
-                <button
-                  type="button"
-                  className={`btn ${quizType === 'spelling' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setQuizType('spelling')}
+          <Card bordered={true}>
+            <Space direction="vertical" size="large" style={{ display: 'flex', width: '100%' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <Text type="secondary" style={{ fontWeight: 500 }}>Deste Seçimi</Text>
+                <Select
+                  value={selectedDeckId}
+                  onChange={(val) => setSelectedDeckId(val)}
+                  style={{ width: '100%' }}
+                  size="large"
                 >
-                  Yazım Denetimi
-                </button>
-                <button
-                  type="button"
-                  className={`btn ${quizType === 'articles' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setQuizType('articles')}
-                >
-                  Artikel (der/die/das)
-                </button>
-                <button
-                  type="button"
-                  className={`btn ${quizType === 'mixed' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setQuizType('mixed')}
-                >
-                  Karma Test
-                </button>
+                  <Select.Option value="all">
+                    Bütün Desteler ({getQuizCardsCount('all', quizType)} kelime)
+                  </Select.Option>
+                  {decks.map((d) => (
+                    <Select.Option key={d.id} value={d.id}>
+                      {d.name} ({getQuizCardsCount(d.id, quizType)} kelime)
+                    </Select.Option>
+                  ))}
+                </Select>
               </div>
-            </div>
 
-            {getQuizCardsCount(selectedDeckId, quizType) > 0 ? (
-              <button
-                className="btn btn-primary"
-                style={{ padding: '1rem', gap: '0.5rem' }}
-                onClick={startQuiz}
-              >
-                <Play size={18} /> Quizi Başlat (10 Soru)
-              </button>
-            ) : (
-              <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                Bu deste ve test türünde soru bulunamadı. Lütfen kelime türlerini (örneğin isimler)
-                veya desteyi değiştirin.
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <Text type="secondary" style={{ fontWeight: 500 }}>Test Türü</Text>
+                <Segmented
+                  options={[
+                    { label: 'Yazım Denetimi', value: 'spelling' },
+                    { label: 'Artikel (der/die/das)', value: 'articles' },
+                    { label: 'Karma Test', value: 'mixed' }
+                  ]}
+                  value={quizType}
+                  onChange={(val) => setQuizType(val as any)}
+                  block
+                  size="large"
+                />
               </div>
-            )}
-          </div>
+
+              {getQuizCardsCount(selectedDeckId, quizType) > 0 ? (
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<Play size={18} />}
+                  onClick={startQuiz}
+                  style={{ width: '100%' }}
+                >
+                  Quizi Başlat (10 Soru)
+                </Button>
+              ) : (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                  Bu deste ve test türünde soru bulunamadı. Lütfen kelime türlerini (örneğin isimler)
+                  veya desteyi değiştirin.
+                </div>
+              )}
+            </Space>
+          </Card>
         </div>
       )}
 
@@ -399,9 +393,9 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
               marginBottom: '1.5rem'
             }}
           >
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+            <Text style={{ fontWeight: 600 }} type="secondary">
               Soru: {currentIndex + 1} / {quizCards.length}
-            </span>
+            </Text>
 
             <div
               style={{
@@ -418,41 +412,31 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
           </div>
 
           {/* Quiz Play Card */}
-          <div
-            className="glass-card"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '2rem',
-              padding: '2.5rem',
-              minHeight: '340px',
-              justifyContent: 'space-between'
+          <Card
+            bordered={true}
+            styles={{
+              body: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2rem',
+                padding: '2.5rem',
+                minHeight: '340px',
+                justifyContent: 'space-between'
+              }
             }}
           >
             {/* Question Definition */}
             <div style={{ textAlign: 'center' }}>
-              <span
-                style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  letterSpacing: '0.5px'
-                }}
-              >
+              <Text type="secondary" style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
                 Kelimenin Türkçe Anlamı
-              </span>
-              <h2
-                style={{ fontSize: '2.5rem', fontWeight: 800, color: '#fff', marginTop: '0.5rem' }}
-              >
+              </Text>
+              <Title level={2} style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0.5rem 0 0 0' }}>
                 {currentCard.turkish}
-              </h2>
+              </Title>
               {currentCard.type === 'noun' && quizType !== 'articles' && (
-                <p
-                  style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}
-                >
+                <Text type="secondary" style={{ fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>
                   (İsim - Lütfen artikeli {quizType === 'mixed' ? 'dahil ederek' : 'olmadan'} yazın)
-                </p>
+                </Text>
               )}
             </div>
 
@@ -460,34 +444,18 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {/* Articles Input */}
               {quizType === 'articles' && (
-                <div
-                  style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}
-                >
-                  {['der', 'die', 'das'].map((art) => (
-                    <button
-                      key={art}
-                      type="button"
-                      className="btn"
-                      style={{
-                        fontSize: '1.25rem',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        background:
-                          selectedArticle === art
-                            ? `var(--${art}-color)`
-                            : 'rgba(255,255,255,0.03)',
-                        color: selectedArticle === art ? '#000' : `var(--${art}-color)`,
-                        borderColor: `var(--${art}-color)`,
-                        borderWidth: '1.5px',
-                        opacity: checked && selectedArticle !== art ? 0.4 : 1
-                      }}
-                      onClick={() => !checked && setSelectedArticle(art)}
-                      disabled={checked}
-                    >
-                      {art}
-                    </button>
-                  ))}
-                </div>
+                <Segmented
+                  options={[
+                    { label: 'DER', value: 'der' },
+                    { label: 'DİE', value: 'die' },
+                    { label: 'DAS', value: 'das' }
+                  ]}
+                  value={selectedArticle}
+                  onChange={(val) => !checked && setSelectedArticle(val as string)}
+                  disabled={checked}
+                  block
+                  size="large"
+                />
               )}
 
               {/* Mixed Mode Noun Article Chooser */}
@@ -495,35 +463,28 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                 <div
                   style={{
                     display: 'flex',
+                    flexDirection: 'column',
                     gap: '0.5rem',
-                    justifyContent: 'center',
+                    alignItems: 'center',
                     marginBottom: '0.25rem'
                   }}
                 >
-                  {['der', 'die', 'das'].map((art) => (
-                    <button
-                      key={art}
-                      type="button"
-                      className="btn"
-                      style={{
-                        padding: '0.4rem 1rem',
-                        fontSize: '0.85rem',
-                        background:
-                          selectedArticle === art ? `var(--${art}-color)` : 'rgba(9, 11, 17, 0.6)',
-                        color: selectedArticle === art ? '#000' : `var(--${art}-color)`,
-                        borderColor: `var(--${art}-color)`
-                      }}
-                      onClick={() => setSelectedArticle(art)}
-                    >
-                      {art}
-                    </button>
-                  ))}
+                  <Text type="secondary" style={{ fontSize: '0.8rem' }}>Artikel Seçin:</Text>
+                  <Segmented
+                    options={[
+                      { label: 'DER', value: 'der' },
+                      { label: 'DİE', value: 'die' },
+                      { label: 'DAS', value: 'das' }
+                    ]}
+                    value={selectedArticle}
+                    onChange={(val) => setSelectedArticle(val as string)}
+                  />
                 </div>
               )}
 
               {/* Text input for Spelling and Mixed */}
               {quizType !== 'articles' && (
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                   {checked && currentCard.type === 'noun' && quizType === 'mixed' && (
                     <span
                       className={`badge-gender badge-${currentCard.article || 'der'}`}
@@ -537,26 +498,19 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                       {currentCard.article}
                     </span>
                   )}
-                  <input
-                    className="form-input"
-                    style={{
-                      flexGrow: 1,
-                      textAlign: 'center',
-                      fontSize: '1.25rem',
-                      fontWeight: 600,
-                      letterSpacing: '0.5px'
-                    }}
-                    type="text"
+                  <Input
+                    size="large"
                     value={userAnswer}
                     onChange={(e) => setUserAnswer(e.target.value)}
                     placeholder="Almanca kelimeyi buraya yazın..."
                     disabled={checked}
                     autoFocus
+                    style={{ textAlign: 'center', fontSize: '1.25rem', fontWeight: 600 }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && userAnswer.trim()) {
+                      if (e.key === 'Enter') {
                         if (checked) {
                           handleNext();
-                        } else {
+                        } else if (userAnswer.trim()) {
                           handleVerify();
                         }
                       }
@@ -568,42 +522,25 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
 
             {/* Verification Result Feedback */}
             {checked && (
-              <div
-                className="glass-card"
+              <Card
+                bordered={true}
                 style={{
                   background: isCorrect ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)',
                   borderColor: isCorrect ? 'var(--success)' : 'var(--danger)',
-                  padding: '1.25rem',
+                  padding: '1rem',
                   textAlign: 'center'
                 }}
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    fontWeight: 700,
-                    fontSize: '1.1rem',
-                    color: isCorrect ? 'var(--success)' : 'var(--danger)'
-                  }}
-                >
-                  {isCorrect ? (
-                    <>
-                      <Check size={20} /> Doğru!
-                    </>
-                  ) : (
-                    <>
-                      <X size={20} /> Hatalı!
-                    </>
-                  )}
-                </div>
+                <Space size="small" style={{ fontWeight: 700, fontSize: '1.1rem', color: isCorrect ? 'var(--success)' : 'var(--danger)' }}>
+                  {isCorrect ? <Check size={20} /> : <X size={20} />}
+                  <span>{isCorrect ? 'Doğru!' : 'Hatalı!'}</span>
+                </Space>
 
                 {!isCorrect && (
                   <div style={{ marginTop: '0.5rem' }}>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <Text type="secondary" style={{ fontSize: '0.8rem', display: 'block' }}>
                       Doğru Cevap:
-                    </div>
+                    </Text>
                     {quizType === 'articles' ? (
                       <div
                         style={{
@@ -624,7 +561,7 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                         >
                           {currentCard.article}
                         </span>
-                        <span style={{ color: '#fff' }}>{currentCard.german}</span>
+                        <span style={{ color: 'var(--text-primary)' }}>{currentCard.german}</span>
                       </div>
                     ) : (
                       <div>
@@ -640,178 +577,151 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                     )}
                   </div>
                 )}
-              </div>
+              </Card>
             )}
 
             {/* Bottom Actions */}
             <div>
               {!checked ? (
-                <button
-                  className="btn btn-primary"
-                  style={{ width: '100%', padding: '0.9rem' }}
+                <Button
+                  type="primary"
+                  size="large"
                   onClick={() => handleVerify()}
                   disabled={quizType === 'articles' ? !selectedArticle : !userAnswer.trim()}
+                  block
                 >
                   Kontrol Et
-                </button>
+                </Button>
               ) : (
-                <button
-                  className="btn btn-primary"
-                  style={{
-                    width: '100%',
-                    padding: '0.9rem',
-                    gap: '0.5rem',
-                    background: 'var(--success)'
-                  }}
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<ArrowRightOutlined />}
+                  style={{ background: 'var(--success)' }}
                   onClick={handleNext}
+                  block
                 >
-                  Sıradaki Kelime <ArrowRight size={16} />
-                </button>
+                  Sıradaki Kelime
+                </Button>
               )}
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
       {/* 3. Quiz Finished / Scorecard Screen */}
       {quizFinished && (
         <div style={{ maxWidth: '600px', width: '100%' }}>
-          <div
-            className="glass-card"
-            style={{
-              textAlign: 'center',
-              padding: '3rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1.5rem'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <div
-                style={{
-                  background: 'rgba(124, 58, 237, 0.15)',
-                  color: 'var(--accent-color)',
-                  padding: '1.25rem',
-                  borderRadius: '50%'
-                }}
-              >
-                <Award size={48} />
-              </div>
-            </div>
-
-            <div>
-              <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#fff' }}>Quiz Tamamlandı!</h2>
-              <p
-                style={{
-                  color: 'var(--text-secondary)',
-                  fontSize: '0.95rem',
-                  marginTop: '0.25rem'
-                }}
-              >
-                Performans istatistikleriniz aşağıda listelenmiştir.
-              </p>
-            </div>
-
-            {/* Score Stats Ring or Row */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr',
-                gap: '1rem',
-                background: 'rgba(9, 11, 17, 0.4)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '16px',
-                padding: '1.5rem 1rem'
-              }}
-            >
-              <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Doğru</div>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--success)' }}>
-                  {stats.correct}
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Yanlış / Boş</div>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--danger)' }}>
-                  {stats.incorrect}
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Başarı</div>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff' }}>
-                  {Math.round((stats.correct / (stats.correct + stats.incorrect || 1)) * 100)}%
-                </div>
-              </div>
-            </div>
-
-            {/* Incorrect answers review */}
-            {stats.incorrect > 0 && (
-              <div style={{ textAlign: 'left', marginTop: '1rem' }}>
-                <h4
+          <Card bordered={true}>
+            <Result
+              status="success"
+              title={<span style={{ color: 'var(--text-primary)', fontSize: '2rem', fontWeight: 800 }}>Quiz Tamamlandı!</span>}
+              subTitle={<Text type="secondary">Performans istatistikleriniz aşağıda listelenmiştir.</Text>}
+              extra={[
+                <Row
+                  gutter={[16, 16]}
+                  key="stats"
                   style={{
-                    fontSize: '0.9rem',
-                    color: 'var(--text-secondary)',
-                    marginBottom: '0.5rem',
-                    fontWeight: 700
+                    background: 'var(--bg-transparent)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '16px',
+                    padding: '1.5rem 1rem',
+                    width: '100%',
+                    maxWidth: '500px',
+                    margin: '0 auto 1.5rem auto'
                   }}
                 >
-                  Hatalı Yapılan Kelimeler:
-                </h4>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.4rem',
-                    maxHeight: '150px',
-                    overflowY: 'auto'
-                  }}
-                >
-                  {stats.history
-                    .filter((h) => !h.isCorrect)
-                    .map((h, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          fontSize: '0.85rem',
-                          background: 'rgba(239, 68, 68, 0.05)',
-                          padding: '0.5rem',
-                          borderRadius: '8px',
-                          border: '1px solid rgba(239, 68, 68, 0.15)',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          color: 'var(--text-secondary)'
-                        }}
-                      >
-                        <span>
-                          <strong style={{ color: '#fff' }}>{h.card.german}</strong> (
-                          {h.card.turkish})
-                        </span>
-                        <span style={{ color: 'var(--danger)' }}>
-                          Cevabınız: {h.answer || '(Süre bitti)'}
-                        </span>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
+                  <Col span={8}>
+                    <Statistic
+                      title={<span style={{ color: 'var(--text-secondary)' }}>Doğru</span>}
+                      value={stats.correct}
+                      valueStyle={{ color: 'var(--success)', fontWeight: 800 }}
+                    />
+                  </Col>
+                  <Col span={8}>
+                    <Statistic
+                      title={<span style={{ color: 'var(--text-secondary)' }}>Yanlış / Boş</span>}
+                      value={stats.incorrect}
+                      valueStyle={{ color: 'var(--danger)', fontWeight: 800 }}
+                    />
+                  </Col>
+                  <Col span={8}>
+                    <Statistic
+                      title={<span style={{ color: 'var(--text-secondary)' }}>Başarı</span>}
+                      value={`${Math.round((stats.correct / (stats.correct + stats.incorrect || 1)) * 100)}%`}
+                      valueStyle={{ color: 'var(--text-primary)', fontWeight: 800 }}
+                    />
+                  </Col>
+                </Row>,
 
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-              <button
-                className="btn btn-secondary"
-                style={{ flexGrow: 1 }}
-                onClick={() => setQuizFinished(false)}
-              >
-                Arenaya Dön
-              </button>
-              <button
-                className="btn btn-primary"
-                style={{ flexGrow: 1, gap: '0.4rem' }}
-                onClick={startQuiz}
-              >
-                <RotateCcw size={16} /> Yeniden Dene
-              </button>
-            </div>
-          </div>
+                /* Incorrect answers review */
+                stats.incorrect > 0 && (
+                  <div
+                    style={{
+                      textAlign: 'left',
+                      marginTop: '1rem',
+                      width: '100%',
+                      maxWidth: '500px',
+                      margin: '0 auto 1.5rem auto'
+                    }}
+                    key="errors"
+                  >
+                    <Text strong type="secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>
+                      Hatalı Yapılan Kelimeler:
+                    </Text>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.4rem',
+                        maxHeight: '150px',
+                        overflowY: 'auto'
+                      }}
+                    >
+                      {stats.history
+                        .filter((h) => !h.isCorrect)
+                        .map((h, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              fontSize: '0.85rem',
+                              background: 'rgba(239, 68, 68, 0.05)',
+                              padding: '0.5rem 1rem',
+                              borderRadius: '8px',
+                              border: '1px solid rgba(239, 68, 68, 0.15)',
+                              display: 'flex',
+                              justifyContent: 'space-between'
+                            }}
+                          >
+                            <Text>
+                              <strong style={{ color: 'var(--text-primary)' }}>{h.card.german}</strong> (
+                              {h.card.turkish})
+                            </Text>
+                            <Text type="danger">
+                              Cevabınız: {h.answer || '(Süre bitti)'}
+                            </Text>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ),
+
+                <Space key="buttons" size="middle" style={{ marginTop: '1rem' }}>
+                  <Button size="large" onClick={() => setQuizFinished(false)}>
+                    Arenaya Dön
+                  </Button>
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<RotateCcw size={16} />}
+                    onClick={startQuiz}
+                  >
+                    Yeniden Dene
+                  </Button>
+                </Space>
+              ]}
+            />
+          </Card>
         </div>
       )}
     </div>

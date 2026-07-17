@@ -1,5 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Drawer, Button, Tooltip, Progress, Checkbox, Switch, message } from 'antd';
+import { useState, useEffect } from 'react';
+import {
+  Table,
+  Drawer,
+  Button,
+  Tooltip,
+  Progress,
+  Checkbox,
+  Switch,
+  message,
+  Form,
+  Input,
+  Segmented,
+  Row,
+  Col,
+  Space,
+  Card,
+  Modal
+} from 'antd';
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -12,7 +29,7 @@ import {
 } from '@ant-design/icons';
 import { Sparkles } from 'lucide-react';
 import { autofillCard, generateDeckCardsChunk } from '../services/ai';
-import { Card, Deck } from '../global';
+import { Card as CardType, Deck } from '../global';
 
 interface DeckManagerProps {
   decks: Deck[];
@@ -77,7 +94,7 @@ export default function DeckManager({
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationError, setGenerationError] = useState('');
 
-  const [selectedCardForPreview, setSelectedCardForPreview] = useState<Card | null>(null);
+  const [selectedCardForPreview, setSelectedCardForPreview] = useState<CardType | null>(null);
 
   // Close drawer on Escape key press
   useEffect(() => {
@@ -91,8 +108,7 @@ export default function DeckManager({
   }, []);
 
   // Handle deck creation/edit
-  const handleSaveDeckSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveDeckSubmit = async () => {
     if (!deckName.trim()) return;
 
     if (isAiDeck && !selectedDeck) {
@@ -115,7 +131,7 @@ export default function DeckManager({
       const totalCards = aiCardCount;
       const chunkSize = 5;
       const totalChunks = Math.ceil(totalCards / chunkSize);
-      let generatedCards: Card[] = [];
+      let generatedCards: CardType[] = [];
       let excludedWords: string[] = [];
       let occurredError = false;
 
@@ -134,13 +150,13 @@ export default function DeckManager({
           );
 
           if (Array.isArray(chunkCards)) {
-            const formattedChunk: Card[] = chunkCards.map((card: any, index: number) => {
+            const formattedChunk: CardType[] = chunkCards.map((card: any, index: number) => {
               const cardId = `card-${Date.now()}-${i}-${index}`;
               if (card.german) {
                 excludedWords.push(card.german);
               }
 
-              const formatted: Card = {
+              const formatted: CardType = {
                 id: cardId,
                 type: card.type || 'other',
                 german: card.german || '',
@@ -230,6 +246,7 @@ export default function DeckManager({
       if (selectedDeck) {
         setSelectedDeck(newDeck);
       }
+      message.success('Deste bilgileri başarıyla kaydedildi.');
     }
   };
 
@@ -275,6 +292,7 @@ export default function DeckManager({
         if (data.comparative) setComparative(data.comparative);
         if (data.superlative) setSuperlative(data.superlative);
       }
+      message.success('Kart bilgileri yapay zeka ile dolduruldu!');
     } catch (error) {
       console.error(error);
       setAiError('Otomatik doldurma başarısız oldu. API anahtarınızı veya kelimeyi kontrol edin.');
@@ -304,7 +322,7 @@ export default function DeckManager({
   };
 
   // Open card form for editing
-  const openEditCard = (card: Card) => {
+  const openEditCard = (card: CardType) => {
     setEditingCardId(card.id);
     setCardType(card.type || 'noun');
     setGerman(card.german || '');
@@ -348,19 +366,17 @@ export default function DeckManager({
   };
 
   // Save Card Submit
-  const handleSaveCardSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveCardSubmit = () => {
     if (!german.trim() || !turkish.trim()) return;
     if (!selectedDeck) return;
 
-    const newCard: Card = {
+    const newCard: CardType = {
       id: editingCardId || 'card-' + Date.now(),
       type: cardType,
       german: german.trim(),
       turkish: turkish.trim(),
       exampleGerman: exampleGerman.trim(),
       exampleTurkish: exampleTurkish.trim(),
-      // Spaced repetition fields (preserve if editing)
       interval: editingCardId
         ? selectedDeck.cards.find((c) => c.id === editingCardId)?.interval || 0
         : 0,
@@ -393,7 +409,7 @@ export default function DeckManager({
       };
     }
 
-    let updatedCards: Card[] = [];
+    let updatedCards: CardType[] = [];
     if (editingCardId) {
       updatedCards = selectedDeck.cards.map((c) => (c.id === editingCardId ? newCard : c));
     } else {
@@ -411,23 +427,31 @@ export default function DeckManager({
     if (selectedCardForPreview?.id === newCard.id) {
       setSelectedCardForPreview(newCard);
     }
+    message.success('Kelime kartı başarıyla kaydedildi.');
   };
 
   // Delete Card
   const handleDeleteCard = (cardId: string) => {
-    if (!confirm('Bu kelime kartını silmek istediğinize emin misiniz?')) return;
-    if (!selectedDeck) return;
-
-    const updatedDeck: Deck = {
-      ...selectedDeck,
-      cards: selectedDeck.cards.filter((c) => c.id !== cardId)
-    };
-
-    onSaveDeck(updatedDeck);
-    setSelectedDeck(updatedDeck);
-    if (selectedCardForPreview?.id === cardId) {
-      setSelectedCardForPreview(null);
-    }
+    Modal.confirm({
+      title: 'Kartı Sil',
+      content: 'Bu kelime kartını silmek istediğinize emin misiniz?',
+      okText: 'Evet, Sil',
+      okType: 'danger',
+      cancelText: 'Vazgeç',
+      onOk: () => {
+        if (!selectedDeck) return;
+        const updatedDeck: Deck = {
+          ...selectedDeck,
+          cards: selectedDeck.cards.filter((c) => c.id !== cardId)
+        };
+        onSaveDeck(updatedDeck);
+        setSelectedDeck(updatedDeck);
+        if (selectedCardForPreview?.id === cardId) {
+          setSelectedCardForPreview(null);
+        }
+        message.success('Kelime kartı başarıyla silindi.');
+      }
+    });
   };
 
   // Filtered cards based on search
@@ -445,7 +469,7 @@ export default function DeckManager({
       title: 'Almanca / Kelime',
       dataIndex: 'german',
       key: 'german',
-      render: (_text: string, record: Card) => (
+      render: (_text: string, record: CardType) => (
         <span>
           {record.type === 'noun' && record.article && (
             <span
@@ -455,7 +479,7 @@ export default function DeckManager({
               {record.article}
             </span>
           )}
-          <strong>{record.german}</strong>
+          <strong style={{ color: 'var(--text-primary)' }}>{record.german}</strong>
           {record.type === 'noun' && record.plural && (
             <span
               style={{
@@ -485,7 +509,8 @@ export default function DeckManager({
     {
       title: 'Türkçe Anlamı',
       dataIndex: 'turkish',
-      key: 'turkish'
+      key: 'turkish',
+      render: (text: string) => <span style={{ color: 'var(--text-primary)' }}>{text}</span>
     },
     {
       title: 'Sonraki Tekrar',
@@ -497,7 +522,7 @@ export default function DeckManager({
       title: 'İşlemler',
       key: 'actions',
       align: 'right' as const,
-      render: (_: any, record: Card) => (
+      render: (_: any, record: CardType) => (
         <div style={{ display: 'inline-flex', gap: '0.5rem' }} onClick={(e) => e.stopPropagation()}>
           <Tooltip title="Kelimeyi Düzenle">
             <Button
@@ -531,7 +556,7 @@ export default function DeckManager({
                 Kelime kartı gruplarınızı yönetin ve yenilerini oluşturun.
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <Space>
               <Button type="default" icon={<ImportOutlined />} onClick={onImportDeck}>
                 İçe Aktar
               </Button>
@@ -551,13 +576,13 @@ export default function DeckManager({
               >
                 Yeni Deste
               </Button>
-            </div>
+            </Space>
           </div>
 
           {showDeckForm && (
-            <div
-              className="glass-card"
+            <Card
               style={{ maxWidth: '600px', margin: '0 auto 1.5rem auto', width: '100%' }}
+              bordered={true}
             >
               {isGeneratingDeck ? (
                 <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
@@ -565,7 +590,7 @@ export default function DeckManager({
                     style={{ fontSize: 36, color: 'var(--accent-color)', marginBottom: '1rem' }}
                     spin
                   />
-                  <h3 style={{ marginBottom: '0.5rem', fontWeight: 700, color: '#fff' }}>
+                  <h3 style={{ marginBottom: '0.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                     Yapay Zeka Desteyi Oluşturuyor
                   </h3>
                   <p
@@ -577,36 +602,30 @@ export default function DeckManager({
                   >
                     Almanca kelime kartları oluşturuluyor, lütfen bekleyin...
                   </p>
-
                   <Progress percent={generationProgress} strokeColor="var(--accent-color)" />
                 </div>
               ) : (
                 <>
-                  <h3 style={{ marginBottom: '1.25rem', fontWeight: 700, color: '#fff' }}>
+                  <h3 style={{ marginBottom: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                     {selectedDeck ? 'Deste Düzenle' : 'Yeni Deste Oluştur'}
                   </h3>
-                  <form onSubmit={handleSaveDeckSubmit}>
-                    <div className="form-group">
-                      <label className="form-label">Deste Adı</label>
-                      <input
-                        className="form-input"
-                        type="text"
+                  <Form layout="vertical" onFinish={handleSaveDeckSubmit}>
+                    <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Deste Adı</span>} required>
+                      <Input
                         value={deckName}
                         onChange={(e) => setDeckName(e.target.value)}
                         placeholder="Örn: Almanca A1 İsimler"
-                        required
                       />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Açıklama</label>
-                      <textarea
-                        className="form-textarea"
+                    </Form.Item>
+
+                    <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Açıklama</span>}>
+                      <Input.TextArea
                         value={deckDesc}
                         onChange={(e) => setDeckDesc(e.target.value)}
                         placeholder="Deste hakkında kısa bir bilgi..."
                         rows={3}
                       />
-                    </div>
+                    </Form.Item>
 
                     {!selectedDeck && (
                       <div
@@ -631,7 +650,7 @@ export default function DeckManager({
                               display: 'flex',
                               alignItems: 'center',
                               gap: '0.5rem',
-                              color: '#fff'
+                              color: 'var(--text-primary)'
                             }}
                           >
                             <Sparkles size={16} style={{ color: 'var(--accent-color)' }} />
@@ -651,83 +670,74 @@ export default function DeckManager({
                             style={{
                               display: 'flex',
                               flexDirection: 'column',
-                              gap: '1.5rem',
-                              background: 'rgba(255, 255, 255, 0.01)',
+                              gap: '1rem',
+                              background: 'var(--bg-trans-light)',
                               padding: '1.25rem',
                               borderRadius: '12px',
                               border: '1px solid var(--border-color)'
                             }}
                           >
-                            {/* Card Count selection */}
-                            <div className="form-group" style={{ marginBottom: 0 }}>
-                              <label className="form-label">Oluşturulacak Kart Sayısı</label>
-                              <div
-                                style={{
-                                  display: 'grid',
-                                  gridTemplateColumns: 'repeat(3, 1fr)',
-                                  gap: '0.5rem'
-                                }}
-                              >
-                                {[5, 15, 25].map((count) => (
-                                  <Button
-                                    key={count}
-                                    type={aiCardCount === count ? 'primary' : 'default'}
-                                    onClick={() => setAiCardCount(count)}
-                                  >
-                                    {count} Kart
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
+                            <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Oluşturulacak Kart Sayısı</span>}>
+                              <Segmented
+                                options={[
+                                  { label: '5 Kart', value: 5 },
+                                  { label: '15 Kart', value: 15 },
+                                  { label: '25 Kart', value: 25 }
+                                ]}
+                                value={aiCardCount}
+                                onChange={(val) => setAiCardCount(val as number)}
+                                block
+                              />
+                            </Form.Item>
 
-                            {/* Word types checkboxes */}
-                            <div className="form-group" style={{ marginBottom: 0 }}>
-                              <label className="form-label">Kelime Türleri</label>
-                              <div
-                                style={{
-                                  display: 'grid',
-                                  gridTemplateColumns: 'repeat(2, 1fr)',
-                                  gap: '0.75rem'
-                                }}
-                              >
-                                <Checkbox
-                                  checked={aiWordTypes.noun}
-                                  onChange={(e) =>
-                                    setAiWordTypes({ ...aiWordTypes, noun: e.target.checked })
-                                  }
-                                  style={{ color: 'var(--text-secondary)' }}
-                                >
-                                  İsim (Nomen)
-                                </Checkbox>
-                                <Checkbox
-                                  checked={aiWordTypes.verb}
-                                  onChange={(e) =>
-                                    setAiWordTypes({ ...aiWordTypes, verb: e.target.checked })
-                                  }
-                                  style={{ color: 'var(--text-secondary)' }}
-                                >
-                                  Fiil (Verb)
-                                </Checkbox>
-                                <Checkbox
-                                  checked={aiWordTypes.adjective}
-                                  onChange={(e) =>
-                                    setAiWordTypes({ ...aiWordTypes, adjective: e.target.checked })
-                                  }
-                                  style={{ color: 'var(--text-secondary)' }}
-                                >
-                                  Sıfat (Adjektiv)
-                                </Checkbox>
-                                <Checkbox
-                                  checked={aiWordTypes.other}
-                                  onChange={(e) =>
-                                    setAiWordTypes({ ...aiWordTypes, other: e.target.checked })
-                                  }
-                                  style={{ color: 'var(--text-secondary)' }}
-                                >
-                                  Diğer
-                                </Checkbox>
-                              </div>
-                            </div>
+                            <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Kelime Türleri</span>}>
+                              <Row gutter={[12, 12]}>
+                                <Col span={12}>
+                                  <Checkbox
+                                    checked={aiWordTypes.noun}
+                                    onChange={(e) =>
+                                      setAiWordTypes({ ...aiWordTypes, noun: e.target.checked })
+                                    }
+                                    style={{ color: 'var(--text-secondary)' }}
+                                  >
+                                    İsim (Nomen)
+                                  </Checkbox>
+                                </Col>
+                                <Col span={12}>
+                                  <Checkbox
+                                    checked={aiWordTypes.verb}
+                                    onChange={(e) =>
+                                      setAiWordTypes({ ...aiWordTypes, verb: e.target.checked })
+                                    }
+                                    style={{ color: 'var(--text-secondary)' }}
+                                  >
+                                    Fiil (Verb)
+                                  </Checkbox>
+                                </Col>
+                                <Col span={12}>
+                                  <Checkbox
+                                    checked={aiWordTypes.adjective}
+                                    onChange={(e) =>
+                                      setAiWordTypes({ ...aiWordTypes, adjective: e.target.checked })
+                                    }
+                                    style={{ color: 'var(--text-secondary)' }}
+                                  >
+                                    Sıfat (Adjektiv)
+                                  </Checkbox>
+                                </Col>
+                                <Col span={12}>
+                                  <Checkbox
+                                    checked={aiWordTypes.other}
+                                    onChange={(e) =>
+                                      setAiWordTypes({ ...aiWordTypes, other: e.target.checked })
+                                    }
+                                    style={{ color: 'var(--text-secondary)' }}
+                                  >
+                                    Diğer
+                                  </Checkbox>
+                                </Col>
+                              </Row>
+                            </Form.Item>
                           </div>
                         )}
                       </div>
@@ -746,117 +756,113 @@ export default function DeckManager({
                       </div>
                     )}
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '0.75rem',
-                        justifyContent: 'flex-end',
-                        marginTop: '1.5rem'
-                      }}
-                    >
-                      <Button type="default" onClick={() => setShowDeckForm(false)}>
-                        Vazgeç
-                      </Button>
-                      <Button type="primary" htmlType="submit">
-                        Kaydet
-                      </Button>
-                    </div>
-                  </form>
+                    <Form.Item style={{ display: 'flex', justifyContent: 'flex-end', margin: '1.5rem 0 0 0' }}>
+                      <Space>
+                        <Button type="default" onClick={() => setShowDeckForm(false)}>
+                          Vazgeç
+                        </Button>
+                        <Button type="primary" htmlType="submit">
+                          Kaydet
+                        </Button>
+                      </Space>
+                    </Form.Item>
+                  </Form>
                 </>
               )}
-            </div>
+            </Card>
           )}
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '1.5rem',
-              marginTop: '1rem'
-            }}
-          >
+          <Row gutter={[24, 24]} style={{ marginTop: '1rem' }}>
             {decks.map((deck) => (
-              <div
-                key={deck.id}
-                className="glass-card clickable-card"
-                onClick={() => {
-                  setSelectedDeck(deck);
-                  setSearchTerm('');
-                  setSelectedCardForPreview(null);
-                }}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  gap: '1rem',
-                  minHeight: '180px'
-                }}
-              >
-                <div>
-                  <h3
-                    style={{
-                      fontSize: '1.15rem',
-                      fontWeight: 700,
-                      marginBottom: '0.5rem',
-                      color: '#fff'
-                    }}
-                  >
-                    {deck.name}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: '0.85rem',
-                      color: 'var(--text-secondary)',
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical'
-                    }}
-                  >
-                    {deck.description || 'Açıklama girilmemiş.'}
-                  </p>
-                </div>
-                <div
+              <Col xs={24} sm={12} md={8} key={deck.id}>
+                <Card
+                  hoverable
+                  onClick={() => {
+                    setSelectedDeck(deck);
+                    setSearchTerm('');
+                    setSelectedCardForPreview(null);
+                  }}
                   style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginTop: '1rem'
+                    background: 'var(--bg-card)',
+                    borderColor: 'var(--border-color)',
+                    height: '100%',
+                    minHeight: '180px'
+                  }}
+                  styles={{
+                    body: {
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      height: '100%',
+                      gap: '1rem',
+                      padding: '1.5rem'
+                    }
                   }}
                 >
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                    {deck.cards.length} kart
-                  </span>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Tooltip title="Dışa Aktar">
-                      <Button
-                        size="small"
-                        icon={<ExportOutlined style={{ fontSize: '12px' }} />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onExportDeck(deck);
-                        }}
-                      />
-                    </Tooltip>
-                    <Tooltip title="Deste Bilgilerini Düzenle">
-                      <Button
-                        size="small"
-                        icon={<EditOutlined style={{ fontSize: '12px' }} />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedDeck(deck);
-                          setDeckName(deck.name);
-                          setDeckDesc(deck.description || '');
-                          setShowDeckForm(true);
-                          setSelectedCardForPreview(null);
-                        }}
-                      />
-                    </Tooltip>
+                  <div>
+                    <h3
+                      style={{
+                        fontSize: '1.15rem',
+                        fontWeight: 700,
+                        marginBottom: '0.5rem',
+                        color: 'var(--text-primary)',
+                        margin: '0 0 0.5rem 0'
+                      }}
+                    >
+                      {deck.name}
+                    </h3>
+                    <p
+                      style={{
+                        fontSize: '0.85rem',
+                        color: 'var(--text-secondary)',
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        margin: 0
+                      }}
+                    >
+                      {deck.description || 'Açıklama girilmemiş.'}
+                    </p>
                   </div>
-                </div>
-              </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginTop: '1rem'
+                    }}
+                  >
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                      {deck.cards.length} kart
+                    </span>
+                    <Space onClick={(e) => e.stopPropagation()}>
+                      <Tooltip title="Dışa Aktar">
+                        <Button
+                          size="small"
+                          icon={<ExportOutlined style={{ fontSize: '12px' }} />}
+                          onClick={() => onExportDeck(deck)}
+                        />
+                      </Tooltip>
+                      <Tooltip title="Deste Bilgilerini Düzenle">
+                        <Button
+                          size="small"
+                          icon={<EditOutlined style={{ fontSize: '12px' }} />}
+                          onClick={() => {
+                            setSelectedDeck(deck);
+                            setDeckName(deck.name);
+                            setDeckDesc(deck.description || '');
+                            setShowDeckForm(true);
+                            setSelectedCardForPreview(null);
+                          }}
+                        />
+                      </Tooltip>
+                    </Space>
+                  </div>
+                </Card>
+              </Col>
             ))}
-          </div>
+          </Row>
         </>
       )}
 
@@ -888,27 +894,16 @@ export default function DeckManager({
               alignItems: 'center'
             }}
           >
-            <div style={{ position: 'relative', flexGrow: 1, maxWidth: '400px' }}>
-              <input
-                className="form-input"
-                style={{ width: '100%', paddingLeft: '2.5rem' }}
-                type="text"
-                placeholder="Almanca veya Türkçe ara..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <SearchOutlined
-                style={{
-                  position: 'absolute',
-                  left: '1rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: 'var(--text-muted)'
-                }}
-              />
-            </div>
+            <Input
+              style={{ maxWidth: '400px', flexGrow: 1 }}
+              prefix={<SearchOutlined style={{ color: 'var(--text-muted)' }} />}
+              placeholder="Almanca veya Türkçe ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              size="large"
+            />
 
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Space>
               <Tooltip title="Deste Bilgilerini Düzenle">
                 <Button icon={<EditOutlined />} onClick={() => setShowDeckForm(true)} />
               </Tooltip>
@@ -917,73 +912,62 @@ export default function DeckManager({
                   danger
                   icon={<DeleteOutlined />}
                   onClick={() => {
-                    if (
-                      confirm(
-                        'Bu desteyi ve içindeki TÜM kartları silmek istediğinize emin misiniz? Bu işlem geri alınamaz.'
-                      )
-                    ) {
-                      onDeleteDeck(selectedDeck.id);
-                      setSelectedDeck(null);
-                      setSelectedCardForPreview(null);
-                    }
+                    Modal.confirm({
+                      title: 'Desteyi Sil',
+                      content: 'Bu desteyi ve içindeki TÜM kartları silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+                      okText: 'Evet, Sil',
+                      okType: 'danger',
+                      cancelText: 'Vazgeç',
+                      onOk: () => {
+                        onDeleteDeck(selectedDeck.id);
+                        setSelectedDeck(null);
+                        setSelectedCardForPreview(null);
+                        message.success('Deste başarıyla silindi.');
+                      }
+                    });
                   }}
                 />
               </Tooltip>
               <Tooltip title="Kelime Ekle">
                 <Button type="primary" icon={<PlusOutlined />} onClick={openAddCard} />
               </Tooltip>
-            </div>
+            </Space>
           </div>
 
           {showDeckForm && (
-            <div
-              className="glass-card"
+            <Card
               style={{ maxWidth: '600px', margin: '0 auto 1rem auto', width: '100%' }}
+              bordered={true}
             >
-              <h3 style={{ marginBottom: '1.25rem', fontWeight: 700, color: '#fff' }}>
+              <h3 style={{ marginBottom: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Deste Bilgilerini Güncelle
               </h3>
-              <form onSubmit={handleSaveDeckSubmit}>
-                <div className="form-group">
-                  <label className="form-label">Deste Adı</label>
-                  <input
-                    className="form-input"
-                    type="text"
+              <Form layout="vertical" onFinish={handleSaveDeckSubmit}>
+                <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Deste Adı</span>} required>
+                  <Input
                     value={deckName}
                     onChange={(e) => setDeckName(e.target.value)}
-                    required
                   />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Açıklama</label>
-                  <textarea
-                    className="form-textarea"
+                </Form.Item>
+                <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Açıklama</span>}>
+                  <Input.TextArea
                     value={deckDesc}
                     onChange={(e) => setDeckDesc(e.target.value)}
                     rows={3}
                   />
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '0.75rem',
-                    justifyContent: 'flex-end',
-                    marginTop: '1.5rem'
-                  }}
-                >
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowDeckForm(false)}
-                  >
-                    Kapat
-                  </button>
-                  <button type="submit" className="btn btn-primary">
-                    Değişiklikleri Kaydet
-                  </button>
-                </div>
-              </form>
-            </div>
+                </Form.Item>
+                <Form.Item style={{ display: 'flex', justifyContent: 'flex-end', margin: '1.5rem 0 0 0' }}>
+                  <Space>
+                    <Button type="default" onClick={() => setShowDeckForm(false)}>
+                      Kapat
+                    </Button>
+                    <Button type="primary" htmlType="submit">
+                      Değişiklikleri Kaydet
+                    </Button>
+                  </Space>
+                </Form.Item>
+              </Form>
+            </Card>
           )}
 
           {/* Ant Design Word List Table */}
@@ -1023,52 +1007,37 @@ export default function DeckManager({
               icon={<ArrowLeftOutlined />}
               onClick={() => setShowCardForm(false)}
             />
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff', margin: 0 }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
               {editingCardId ? 'Kelimeyi Düzenle' : 'Yeni Kelime Kartı Ekle'}
             </h2>
           </div>
 
-          <div className="glass-card">
-            <form
-              onSubmit={handleSaveCardSubmit}
-              style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-            >
-              <div className="form-group">
-                <label className="form-label">Kelime Türü</label>
-                <div
-                  style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}
-                >
-                  {(['noun', 'verb', 'adjective', 'other'] as const).map((type) => (
-                    <Button
-                      key={type}
-                      type={cardType === type ? 'primary' : 'default'}
-                      onClick={() => {
-                        setCardType(type);
-                        setAiError('');
-                      }}
-                      style={{ fontSize: '0.85rem' }}
-                    >
-                      {type === 'noun' && 'İsim (Nomen)'}
-                      {type === 'verb' && 'Fiil (Verb)'}
-                      {type === 'adjective' && 'Sıfat (Adjektiv)'}
-                      {type === 'other' && 'Diğer'}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+          <Card bordered={true}>
+            <Form layout="vertical" onFinish={handleSaveCardSubmit}>
+              <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Kelime Türü</span>}>
+                <Segmented
+                  options={[
+                    { label: 'İsim (Nomen)', value: 'noun' },
+                    { label: 'Fiil (Verb)', value: 'verb' },
+                    { label: 'Sıfat (Adjektiv)', value: 'adjective' },
+                    { label: 'Diğer', value: 'other' }
+                  ]}
+                  value={cardType}
+                  onChange={(val) => {
+                    setCardType(val as any);
+                    setAiError('');
+                  }}
+                  block
+                />
+              </Form.Item>
 
               {/* German Word input + AI Autofill */}
-              <div className="form-group" style={{ position: 'relative' }}>
-                <label className="form-label">Almanca Kelime / İfade</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input
-                    className="form-input"
-                    style={{ flexGrow: 1 }}
-                    type="text"
+              <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Almanca Kelime / İfade</span>} required>
+                <Space.Compact style={{ width: '100%' }}>
+                  <Input
                     value={german}
                     onChange={(e) => setGerman(e.target.value)}
                     placeholder="Örn: Hund, gehen, schön"
-                    required
                   />
                   <Button
                     type="default"
@@ -1088,7 +1057,7 @@ export default function DeckManager({
                   >
                     {isAiLoading ? 'Dolduruluyor...' : 'Yapay Zeka ile Doldur'}
                   </Button>
-                </div>
+                </Space.Compact>
                 {aiError && (
                   <span
                     style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.25rem' }}
@@ -1096,103 +1065,70 @@ export default function DeckManager({
                     {aiError}
                   </span>
                 )}
-              </div>
+              </Form.Item>
 
               {/* Dynamic Word Type Fields */}
               {cardType === 'noun' && (
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '1rem'
-                  }}
-                >
-                  <div className="form-group">
-                    <label className="form-label">Artikel</label>
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '0.5rem'
-                      }}
-                    >
-                      {(['der', 'die', 'das'] as const).map((art) => (
-                        <button
-                          key={art}
-                          type="button"
-                          className="btn"
-                          style={{
-                            fontSize: '0.95rem',
-                            fontWeight: 700,
-                            textTransform: 'uppercase',
-                            background:
-                              article === art ? `var(--${art}-color)` : 'rgba(255,255,255,0.03)',
-                            color: article === art ? '#000' : `var(--${art}-color)`,
-                            borderColor: `var(--${art}-color)`,
-                            borderWidth: '1.5px',
-                            padding: '0.5rem'
-                          }}
-                          onClick={() => setArticle(art)}
-                        >
-                          {art}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Çoğul Hali (Plural)</label>
-                    <input
-                      className="form-input"
-                      type="text"
-                      value={plural}
-                      onChange={(e) => setPlural(e.target.value)}
-                      placeholder="Örn: Hunde"
-                    />
-                  </div>
-                </div>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} sm={12}>
+                    <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Artikel</span>}>
+                      <Segmented
+                        options={[
+                          { label: 'DER', value: 'der' },
+                          { label: 'DİE', value: 'die' },
+                          { label: 'DAS', value: 'das' }
+                        ]}
+                        value={article}
+                        onChange={(val) => setArticle(val as any)}
+                        block
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={12}>
+                    <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Çoğul Hali (Plural)</span>}>
+                      <Input
+                        value={plural}
+                        onChange={(e) => setPlural(e.target.value)}
+                        placeholder="Örn: Hunde"
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
               )}
 
               {cardType === 'verb' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                      gap: '0.75rem'
-                    }}
-                  >
-                    <div className="form-group">
-                      <label className="form-label">Präsens (3. Tekil)</label>
-                      <input
-                        className="form-input"
-                        type="text"
-                        value={praesens}
-                        onChange={(e) => setPraesens(e.target.value)}
-                        placeholder="Örn: geht"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Präteritum (3. Tekil)</label>
-                      <input
-                        className="form-input"
-                        type="text"
-                        value={praeteritum}
-                        onChange={(e) => setPraeteritum(e.target.value)}
-                        placeholder="Örn: ging"
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group" style={{ marginTop: '0.25rem' }}>
-                    <label className="form-label">Perfekt</label>
-                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                <Space direction="vertical" style={{ display: 'flex', width: '100%' }} size="middle">
+                  <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12}>
+                      <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Präsens (3. Tekil)</span>}>
+                        <Input
+                          value={praesens}
+                          onChange={(e) => setPraesens(e.target.value)}
+                          placeholder="Örn: geht"
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12}>
+                      <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Präteritum (3. Tekil)</span>}>
+                        <Input
+                          value={praeteritum}
+                          onChange={(e) => setPraeteritum(e.target.value)}
+                          placeholder="Örn: ging"
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Perfekt</span>}>
+                    <Space.Compact style={{ width: '100%' }}>
                       <div
                         style={{
                           display: 'flex',
                           gap: '0.2rem',
-                          background: 'rgba(9, 11, 17, 0.4)',
-                          borderRadius: '10px',
+                          background: 'var(--bg-transparent)',
+                          borderRadius: '10px 0 0 10px',
                           padding: '0.25rem',
-                          border: '1px solid var(--border-color)'
+                          border: '1px solid var(--border-color)',
+                          borderRight: 'none'
                         }}
                       >
                         {(['hat', 'ist'] as const).map((aux) => (
@@ -1206,7 +1142,7 @@ export default function DeckManager({
                               fontWeight: 700,
                               background:
                                 perfektAux === aux ? 'var(--accent-color)' : 'transparent',
-                              color: '#fff',
+                              color: perfektAux === aux ? '#fff' : 'var(--text-primary)',
                               borderRadius: '7px',
                               border: 'none'
                             }}
@@ -1216,101 +1152,76 @@ export default function DeckManager({
                           </button>
                         ))}
                       </div>
-                      <input
-                        className="form-input"
-                        type="text"
+                      <Input
                         value={perfektParticiple}
                         onChange={(e) => setPerfektParticiple(e.target.value)}
                         placeholder="Örn: gegangen"
-                        style={{ flexGrow: 1 }}
+                        style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                       />
-                    </div>
-                  </div>
-                </div>
+                    </Space.Compact>
+                  </Form.Item>
+                </Space>
               )}
 
               {cardType === 'adjective' && (
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '1rem'
-                  }}
-                >
-                  <div className="form-group">
-                    <label className="form-label">Komparativ (Karşılaştırma)</label>
-                    <input
-                      className="form-input"
-                      type="text"
-                      value={comparative}
-                      onChange={(e) => setComparative(e.target.value)}
-                      placeholder="Örn: schöner"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Superlativ (En Üstünlük)</label>
-                    <input
-                      className="form-input"
-                      type="text"
-                      value={superlative}
-                      onChange={(e) => setSuperlative(e.target.value)}
-                      placeholder="Örn: am schönsten"
-                    />
-                  </div>
-                </div>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} sm={12}>
+                    <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Komparativ (Karşılaştırma)</span>}>
+                      <Input
+                        value={comparative}
+                        onChange={(e) => setComparative(e.target.value)}
+                        placeholder="Örn: schöner"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={12}>
+                    <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Superlativ (En Üstünlük)</span>}>
+                      <Input
+                        value={superlative}
+                        onChange={(e) => setSuperlative(e.target.value)}
+                        placeholder="Örn: am schönsten"
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
               )}
 
-              <div className="form-group">
-                <label className="form-label">Türkçe Karşılığı</label>
-                <input
-                  className="form-input"
-                  type="text"
+              <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Türkçe Karşılığı</span>} required>
+                <Input
                   value={turkish}
                   onChange={(e) => setTurkish(e.target.value)}
                   placeholder="Örn: köpek, gitmek, güzel"
-                  required
                 />
-              </div>
+              </Form.Item>
 
-              <div className="form-group">
-                <label className="form-label">Almanca Örnek Cümle</label>
-                <input
-                  className="form-input"
-                  type="text"
+              <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Almanca Örnek Cümle</span>}>
+                <Input
                   value={exampleGerman}
                   onChange={(e) => setExampleGerman(e.target.value)}
                   placeholder="Almanca örnek cümle..."
                 />
-              </div>
+              </Form.Item>
 
-              <div className="form-group">
-                <label className="form-label">Örnek Cümlenin Türkçe Çevirisi</label>
-                <input
-                  className="form-input"
-                  type="text"
+              <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Örnek Cümlenin Türkçe Çevirisi</span>}>
+                <Input
                   value={exampleTurkish}
                   onChange={(e) => setExampleTurkish(e.target.value)}
                   placeholder="Türkçe çeviri..."
                 />
-              </div>
+              </Form.Item>
 
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.75rem',
-                  justifyContent: 'flex-end',
-                  marginTop: '1.5rem'
-                }}
-              >
-                <Button type="default" onClick={() => setShowCardForm(false)}>
-                  İptal
-                </Button>
-                <Button type="primary" htmlType="submit">
-                  Kartı Kaydet
-                </Button>
-              </div>
-            </form>
-          </div>
+              <Form.Item style={{ display: 'flex', justifyContent: 'flex-end', margin: '1.5rem 0 0 0' }}>
+                <Space>
+                  <Button type="default" onClick={() => setShowCardForm(false)}>
+                    İptal
+                  </Button>
+                  <Button type="primary" htmlType="submit">
+                    Kartı Kaydet
+                  </Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          </Card>
         </div>
       )}
 
@@ -1318,7 +1229,7 @@ export default function DeckManager({
       <Drawer
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ color: '#fff' }}>Kart Detayları</span>
+            <span style={{ color: 'var(--text-primary)' }}>Kart Detayları</span>
             {selectedCardForPreview && (
               <span
                 className="badge-gender"
@@ -1391,7 +1302,7 @@ export default function DeckManager({
                     {selectedCardForPreview.article}
                   </span>
                 )}
-                <span style={{ color: '#fff' }}>{selectedCardForPreview.german}</span>
+                <span style={{ color: 'var(--text-primary)' }}>{selectedCardForPreview.german}</span>
                 {selectedCardForPreview.type === 'noun' && selectedCardForPreview.plural && (
                   <span
                     style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', fontWeight: 400 }}
@@ -1486,7 +1397,7 @@ export default function DeckManager({
               <div className="drawer-section">
                 <span className="drawer-section-title">Örnek Cümle</span>
                 {selectedCardForPreview.exampleGerman && (
-                  <p style={{ fontStyle: 'italic', color: '#fff', marginBottom: '0.25rem' }}>
+                  <p style={{ fontStyle: 'italic', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
                     "{selectedCardForPreview.exampleGerman}"
                   </p>
                 )}

@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { Volume2, Sparkles, CheckCircle2, RotateCw, ArrowLeft, Loader2 } from 'lucide-react';
+import { Volume2, Sparkles, RotateCw } from 'lucide-react';
+import { Select, Button, Card, Typography, Space, Tag, Row, Col, Result } from 'antd';
+import { ArrowLeftOutlined, LoadingOutlined } from '@ant-design/icons';
 import { explainGrammar } from '../services/ai';
-import { Card, Deck } from '../global';
+import { Card as CardType, Deck } from '../global';
+
+const { Title, Text } = Typography;
 
 interface StudySessionProps {
   decks: Deck[];
-  onUpdateCard: (deckId: string, updatedCard: Card) => void;
+  onUpdateCard: (deckId: string, updatedCard: CardType) => void;
   onNavigate: (route: string) => void;
   apiKey: string;
   onLogStudySession?: (stats: { reviewed: number; grades: number[] }) => void;
 }
 
-interface DueCard extends Card {
+interface DueCard extends CardType {
   deckId: string;
 }
 
@@ -89,7 +93,7 @@ export default function StudySession({
   };
 
   // Get AI Grammar Explanation for current card
-  const handleGetAiExplanation = async (e: React.MouseEvent, card: Card) => {
+  const handleGetAiExplanation = async (e: React.MouseEvent, card: CardType) => {
     e.stopPropagation(); // Don't flip
     if (isAiLoading) return;
     setIsAiLoading(true);
@@ -205,74 +209,70 @@ export default function StudySession({
         flexDirection: 'column',
         gap: '1.5rem',
         height: '100%',
-        alignItems: 'center'
+        alignItems: 'center',
+        width: '100%'
       }}
     >
       {/* 1. Deck Selector */}
       {!sessionActive && (
         <div style={{ maxWidth: '600px', width: '100%' }}>
           <div style={{ marginBottom: '2rem' }}>
-            <h1 className="page-title">Kart Çalışması (SM-2)</h1>
-            <p className="page-subtitle">
+            <Title level={2}>Kart Çalışması (SM-2)</Title>
+            <Text type="secondary">
               Aralıklı Tekrar Algoritması (Spaced Repetition) ile ezberleme seansı başlatın.
-            </p>
+            </Text>
           </div>
 
-          <div
-            className="glass-card"
-            style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
-          >
-            <div className="form-group">
-              <label className="form-label">Çalışılacak Deste Seçin</label>
-              <select
-                className="form-select"
-                value={selectedDeckId}
-                onChange={(e) => setSelectedDeckId(e.target.value)}
-              >
-                <option value="all">Bütün Desteler ({getDueCount('all')} kelime hazır)</option>
-                {decks.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name} ({getDueCount(d.id)} kelime hazır)
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {getDueCount(selectedDeckId) > 0 ? (
-              <button
-                className="btn btn-primary"
-                style={{ padding: '1rem' }}
-                onClick={startSession}
-              >
-                Çalışmayı Başlat ({getDueCount(selectedDeckId)} Kelime)
-              </button>
-            ) : (
-              <div
-                className="glass-card"
-                style={{
-                  textAlign: 'center',
-                  borderColor: 'rgba(16, 185, 129, 0.3)',
-                  background: 'rgba(16, 185, 129, 0.05)',
-                  padding: '2rem',
-                  color: 'var(--text-secondary)'
-                }}
-              >
-                <CheckCircle2
-                  size={36}
-                  style={{ color: 'var(--success)', margin: '0 auto 1rem auto' }}
-                />
-                <h4 style={{ color: '#fff', marginBottom: '0.5rem', fontWeight: 700 }}>
-                  Çalışılacak Kart Yok!
-                </h4>
-                <p style={{ fontSize: '0.9rem' }}>
-                  Seçtiğiniz destede bugün gözden geçirilmesi gereken hiçbir kelime kalmadı.
-                </p>
-                <p style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
-                  Yeni kelimeler ekleyebilir veya diğer destelerinize göz atabilirsiniz.
-                </p>
+          <Card bordered={true}>
+            <Space direction="vertical" size="large" style={{ display: 'flex', width: '100%' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <Text type="secondary" style={{ fontWeight: 500 }}>
+                  Çalışılacak Deste Seçin
+                </Text>
+                <Select
+                  value={selectedDeckId}
+                  onChange={(val) => setSelectedDeckId(val)}
+                  style={{ width: '100%' }}
+                  size="large"
+                >
+                  <Select.Option value="all">
+                    Bütün Desteler ({getDueCount('all')} kelime hazır)
+                  </Select.Option>
+                  {decks.map((d) => (
+                    <Select.Option key={d.id} value={d.id}>
+                      {d.name} ({getDueCount(d.id)} kelime hazır)
+                    </Select.Option>
+                  ))}
+                </Select>
               </div>
-            )}
-          </div>
+
+              {getDueCount(selectedDeckId) > 0 ? (
+                <Button
+                  type="primary"
+                  size="large"
+                  onClick={startSession}
+                  style={{ width: '100%' }}
+                >
+                  Çalışmayı Başlat ({getDueCount(selectedDeckId)} Kelime)
+                </Button>
+              ) : (
+                <Result
+                  status="success"
+                  title={<span style={{ color: 'var(--text-primary)' }}>Çalışılacak Kart Yok!</span>}
+                  subTitle={
+                    <Space direction="vertical" style={{ display: 'flex' }}>
+                      <Text type="secondary">
+                        Seçtiğiniz destede bugün gözden geçirilmesi gereken hiçbir kelime kalmadı.
+                      </Text>
+                      <Text type="secondary" style={{ fontSize: '0.85rem' }}>
+                        Yeni kelimeler ekleyebilir veya diğer destelerinize göz atabilirsiniz.
+                      </Text>
+                    </Space>
+                  }
+                />
+              )}
+            </Space>
+          </Card>
         </div>
       )}
 
@@ -288,9 +288,9 @@ export default function StudySession({
               marginBottom: '1.5rem'
             }}
           >
-            <button
-              className="btn btn-secondary"
-              style={{ padding: '0.5rem' }}
+            <Button
+              type="default"
+              icon={<ArrowLeftOutlined />}
               onClick={() => {
                 if (reviewedCount > 0 && onLogStudySession) {
                   onLogStudySession({
@@ -302,11 +302,11 @@ export default function StudySession({
                 setDueCards([]);
               }}
             >
-              <ArrowLeft size={16} /> Seansı Bitir
-            </button>
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+              Seansı Bitir
+            </Button>
+            <Text style={{ fontWeight: 600 }} type="secondary">
               Kart: {currentIndex + 1} / {dueCards.length}
-            </span>
+            </Text>
           </div>
 
           {/* Flashcard container */}
@@ -327,14 +327,7 @@ export default function StudySession({
                     alignItems: 'center'
                   }}
                 >
-                  <span
-                    style={{
-                      fontSize: '0.8rem',
-                      color: 'var(--text-muted)',
-                      textTransform: 'uppercase',
-                      fontWeight: 700
-                    }}
-                  >
+                  <Tag color="purple">
                     {currentCard.type === 'noun'
                       ? 'İsim (Nomen)'
                       : currentCard.type === 'verb'
@@ -342,14 +335,13 @@ export default function StudySession({
                         : currentCard.type === 'adjective'
                           ? 'Sıfat (Adjektiv)'
                           : 'Diğer'}
-                  </span>
-                  <button
-                    className="btn btn-secondary"
-                    style={{ padding: '0.4rem', borderRadius: '50%' }}
+                  </Tag>
+                  <Button
+                    type="default"
+                    shape="circle"
+                    icon={<Volume2 size={16} />}
                     onClick={(e) => handleSpeak(e, currentCard.german)}
-                  >
-                    <Volume2 size={16} />
-                  </button>
+                  />
                 </div>
 
                 <div
@@ -368,20 +360,13 @@ export default function StudySession({
                       {currentCard.article}
                     </span>
                   )}
-                  <h2
-                    style={{
-                      fontSize: '3rem',
-                      fontWeight: 800,
-                      color: '#fff',
-                      letterSpacing: '-0.5px'
-                    }}
-                  >
+                  <Title level={2} style={{ fontSize: '3rem', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
                     {currentCard.german}
-                  </h2>
+                  </Title>
                   {currentCard.type === 'noun' && currentCard.plural && (
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '1.15rem' }}>
+                    <Text type="secondary" style={{ fontSize: '1.15rem' }}>
                       (pl. <span style={{ fontWeight: 600 }}>{currentCard.plural}</span>)
-                    </p>
+                    </Text>
                   )}
                 </div>
 
@@ -411,23 +396,13 @@ export default function StudySession({
                     alignItems: 'center'
                   }}
                 >
-                  <span
-                    style={{
-                      fontSize: '0.8rem',
-                      color: 'var(--text-muted)',
-                      textTransform: 'uppercase',
-                      fontWeight: 700
-                    }}
-                  >
-                    Türkçe Karşılığı
-                  </span>
-                  <button
-                    className="btn btn-secondary"
-                    style={{ padding: '0.4rem', borderRadius: '50%' }}
+                  <Tag color="cyan">Türkçe Karşılığı</Tag>
+                  <Button
+                    type="default"
+                    shape="circle"
+                    icon={<Volume2 size={16} />}
                     onClick={(e) => handleSpeak(e, currentCard.german)}
-                  >
-                    <Volume2 size={16} />
-                  </button>
+                  />
                 </div>
 
                 {/* Core Translations & Grammar Specific Details */}
@@ -446,42 +421,42 @@ export default function StudySession({
                   {/* Verb conjugations block */}
                   {currentCard.type === 'verb' && currentCard.conjugation && (
                     <div
-                      style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: '12px',
-                        padding: '0.75rem',
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr 1fr',
-                        gap: '0.5rem',
-                        fontSize: '0.8rem',
-                        marginBottom: '1rem'
-                      }}
-                    >
-                      <div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                          Präsens (er/sie/es)
-                        </div>
-                        <div style={{ fontWeight: 600, color: '#fff' }}>
-                          {currentCard.conjugation.praesens || '-'}
-                        </div>
+                    style={{
+                      background: 'var(--bg-trans-light)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '12px',
+                      padding: '0.75rem',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr 1fr',
+                      gap: '0.5rem',
+                      fontSize: '0.8rem',
+                      marginBottom: '1rem'
+                    }}
+                  >
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+                        Präsens (er/sie/es)
                       </div>
-                      <div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                          Präteritum
-                        </div>
-                        <div style={{ fontWeight: 600, color: '#fff' }}>
-                          {currentCard.conjugation.praeteritum || '-'}
-                        </div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {currentCard.conjugation.praesens || '-'}
                       </div>
-                      <div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                          Perfekt
-                        </div>
-                        <div style={{ fontWeight: 600, color: '#fff' }}>
-                          {currentCard.conjugation.perfekt || '-'}
-                        </div>
+                    </div>
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+                        Präteritum
                       </div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {currentCard.conjugation.praeteritum || '-'}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+                        Perfekt
+                      </div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {currentCard.conjugation.perfekt || '-'}
+                      </div>
+                    </div>
                     </div>
                   )}
 
@@ -489,33 +464,33 @@ export default function StudySession({
                   {currentCard.type === 'adjective' && currentCard.comparison && (
                     <div
                       style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: '12px',
-                        padding: '0.75rem',
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: '0.5rem',
-                        fontSize: '0.8rem',
-                        marginBottom: '1rem'
-                      }}
-                    >
-                      <div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                          Komparativ
-                        </div>
-                        <div style={{ fontWeight: 600, color: '#fff' }}>
-                          {currentCard.comparison.comparative || '-'}
-                        </div>
+                      background: 'var(--bg-trans-light)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '12px',
+                      padding: '0.75rem',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '0.5rem',
+                      fontSize: '0.8rem',
+                      marginBottom: '1rem'
+                    }}
+                  >
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+                        Komparativ
                       </div>
-                      <div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                          Superlativ
-                        </div>
-                        <div style={{ fontWeight: 600, color: '#fff' }}>
-                          {currentCard.comparison.superlative || '-'}
-                        </div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {currentCard.comparison.comparative || '-'}
                       </div>
+                    </div>
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+                        Superlativ
+                      </div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {currentCard.comparison.superlative || '-'}
+                      </div>
+                    </div>
                     </div>
                   )}
 
@@ -523,13 +498,13 @@ export default function StudySession({
                   {currentCard.exampleGerman && (
                     <div
                       style={{
-                        textAlign: 'left',
-                        borderTop: '1px solid rgba(255,255,255,0.05)',
-                        paddingTop: '0.75rem',
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      <p style={{ color: '#fff', fontStyle: 'italic' }}>
+                      textAlign: 'left',
+                      borderTop: '1px solid var(--border-trans)',
+                      paddingTop: '0.75rem',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    <p style={{ color: 'var(--text-primary)', fontStyle: 'italic', margin: 0 }}>
                         "{currentCard.exampleGerman}"
                       </p>
                       {currentCard.exampleTurkish && (
@@ -537,7 +512,8 @@ export default function StudySession({
                           style={{
                             color: 'var(--text-secondary)',
                             fontSize: '0.8rem',
-                            marginTop: '0.2'
+                            marginTop: '0.25rem',
+                            marginBottom: 0
                           }}
                         >
                           ({currentCard.exampleTurkish})
@@ -579,26 +555,20 @@ export default function StudySession({
                       {aiExplanation}
                     </div>
                   ) : (
-                    <button
-                      className="btn btn-secondary"
+                    <Button
+                      type="default"
                       style={{
                         fontSize: '0.75rem',
-                        padding: '0.4rem 0.75rem',
                         margin: '0 auto',
-                        gap: '0.4rem'
+                        height: 'auto',
+                        padding: '0.4rem 0.75rem'
                       }}
+                      icon={isAiLoading ? <LoadingOutlined /> : <Sparkles size={12} style={{ color: 'var(--accent-color)' }} />}
                       onClick={(e) => handleGetAiExplanation(e, currentCard)}
                       disabled={isAiLoading}
                     >
-                      {isAiLoading ? (
-                        <Loader2 size={12} className="spin" />
-                      ) : (
-                        <Sparkles size={12} style={{ color: 'var(--accent-color)' }} />
-                      )}
-                      {isAiLoading
-                        ? 'Açıklama Yükleniyor...'
-                        : 'AI Gramer Açıklaması (Almanca vs Türkçe)'}
-                    </button>
+                      {isAiLoading ? 'Açıklama Yükleniyor...' : 'AI Gramer Açıklaması (Almanca vs Türkçe)'}
+                    </Button>
                   )}
                 </div>
               </div>
@@ -607,83 +577,80 @@ export default function StudySession({
 
           {/* SM-2 Spaced Repetition Buttons */}
           {isFlipped && (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '0.5rem',
-                marginTop: '1rem',
-                width: '100%'
-              }}
-            >
-              <button
-                className="btn"
-                style={{
-                  background: 'rgba(244, 63, 94, 0.15)',
-                  color: 'var(--sr-again)',
-                  borderColor: 'rgba(244, 63, 94, 0.3)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '0.6rem 0.25rem',
-                  gap: '0.2rem'
-                }}
-                onClick={() => handleGrade(1)}
-              >
-                <span style={{ fontSize: '0.85rem', fontWeight: 750 }}>Tekrar</span>
-                <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>Yinele</span>
-              </button>
-
-              <button
-                className="btn"
-                style={{
-                  background: 'rgba(245, 158, 11, 0.15)',
-                  color: 'var(--sr-hard)',
-                  borderColor: 'rgba(245, 158, 11, 0.3)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '0.6rem 0.25rem',
-                  gap: '0.2rem'
-                }}
-                onClick={() => handleGrade(2.5)}
-              >
-                <span style={{ fontSize: '0.85rem', fontWeight: 750 }}>Zor</span>
-                <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>Hatırla</span>
-              </button>
-
-              <button
-                className="btn"
-                style={{
-                  background: 'rgba(59, 130, 246, 0.15)',
-                  color: 'var(--sr-good)',
-                  borderColor: 'rgba(59, 130, 246, 0.3)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '0.6rem 0.25rem',
-                  gap: '0.2rem'
-                }}
-                onClick={() => handleGrade(4)}
-              >
-                <span style={{ fontSize: '0.85rem', fontWeight: 750 }}>İyi</span>
-                <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>Biliyorum</span>
-              </button>
-
-              <button
-                className="btn"
-                style={{
-                  background: 'rgba(16, 185, 129, 0.15)',
-                  color: 'var(--sr-easy)',
-                  borderColor: 'rgba(16, 185, 129, 0.3)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '0.6rem 0.25rem',
-                  gap: '0.2rem'
-                }}
-                onClick={() => handleGrade(5)}
-              >
-                <span style={{ fontSize: '0.85rem', fontWeight: 750 }}>Kolay</span>
-                <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>Çok Kolay</span>
-              </button>
-            </div>
+            <Row gutter={[8, 8]} style={{ marginTop: '1rem', width: '100%' }}>
+              <Col span={6}>
+                <Button
+                  style={{
+                    background: 'rgba(244, 63, 94, 0.15)',
+                    color: 'var(--sr-again)',
+                    borderColor: 'rgba(244, 63, 94, 0.3)',
+                    height: 'auto',
+                    padding: '0.6rem 0.25rem'
+                  }}
+                  onClick={() => handleGrade(1)}
+                  block
+                >
+                  <Space direction="vertical" size={2}>
+                    <strong style={{ fontSize: '0.85rem' }}>Tekrar</strong>
+                    <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>Yinele</span>
+                  </Space>
+                </Button>
+              </Col>
+              <Col span={6}>
+                <Button
+                  style={{
+                    background: 'rgba(245, 158, 11, 0.15)',
+                    color: 'var(--sr-hard)',
+                    borderColor: 'rgba(245, 158, 11, 0.3)',
+                    height: 'auto',
+                    padding: '0.6rem 0.25rem'
+                  }}
+                  onClick={() => handleGrade(2.5)}
+                  block
+                >
+                  <Space direction="vertical" size={2}>
+                    <strong style={{ fontSize: '0.85rem' }}>Zor</strong>
+                    <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>Hatırla</span>
+                  </Space>
+                </Button>
+              </Col>
+              <Col span={6}>
+                <Button
+                  style={{
+                    background: 'rgba(59, 130, 246, 0.15)',
+                    color: 'var(--sr-good)',
+                    borderColor: 'rgba(59, 130, 246, 0.3)',
+                    height: 'auto',
+                    padding: '0.6rem 0.25rem'
+                  }}
+                  onClick={() => handleGrade(4)}
+                  block
+                >
+                  <Space direction="vertical" size={2}>
+                    <strong style={{ fontSize: '0.85rem' }}>İyi</strong>
+                    <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>Biliyorum</span>
+                  </Space>
+                </Button>
+              </Col>
+              <Col span={6}>
+                <Button
+                  style={{
+                    background: 'rgba(16, 185, 129, 0.15)',
+                    color: 'var(--sr-easy)',
+                    borderColor: 'rgba(16, 185, 129, 0.3)',
+                    height: 'auto',
+                    padding: '0.6rem 0.25rem'
+                  }}
+                  onClick={() => handleGrade(5)}
+                  block
+                >
+                  <Space direction="vertical" size={2}>
+                    <strong style={{ fontSize: '0.85rem' }}>Kolay</strong>
+                    <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>Çok Kolay</span>
+                  </Space>
+                </Button>
+              </Col>
+            </Row>
           )}
         </div>
       )}

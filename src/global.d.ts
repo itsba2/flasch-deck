@@ -53,6 +53,8 @@ export interface AppConfig {
   apiKey: string;
   studyHistory?: StudyHistoryItem[];
   quizHistory?: QuizHistoryItem[];
+  fontSize?: 'small' | 'medium' | 'large';
+  theme?: 'light' | 'dark';
 }
 
 export interface ElectronAPI {

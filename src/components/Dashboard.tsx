@@ -18,13 +18,15 @@ interface DashboardProps {
   studyHistory?: StudyHistoryItem[];
   quizHistory?: QuizHistoryItem[];
   onNavigate: (route: string) => void;
+  theme?: 'light' | 'dark';
 }
 
 export default function Dashboard({
   decks,
   studyHistory = [],
   quizHistory = [],
-  onNavigate
+  onNavigate,
+  theme = 'light'
 }: DashboardProps) {
   // Calculate statistics
   const totalDecks = decks.length;
@@ -150,7 +152,9 @@ export default function Dashboard({
 
   // Get color for activity intensity
   const getActivityColor = (totalActivity: number) => {
-    if (totalActivity === 0) return '#171e30';
+    if (totalActivity === 0) {
+      return theme === 'light' ? '#cbd5e1' : '#171e30';
+    }
     if (totalActivity <= 3) return 'rgba(124, 58, 237, 0.25)'; // Light violet
     if (totalActivity <= 8) return 'rgba(124, 58, 237, 0.55)'; // Medium violet
     return 'var(--accent-color)'; // Strong violet
@@ -191,7 +195,7 @@ export default function Dashboard({
             size={20}
             style={{ color: currentStreak > 0 ? 'var(--warning)' : 'var(--text-muted)' }}
           />
-          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff' }}>
+          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
             {currentStreak > 0 ? `${currentStreak} Günlük Seri` : 'Seri Bulunmuyor'}
           </span>
         </div>
@@ -292,7 +296,9 @@ export default function Dashboard({
           className="glass-card"
           style={{
             background:
-              'linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(9, 11, 17, 0.6) 100%)',
+              theme === 'light'
+                ? 'linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(124, 58, 237, 0.02) 100%)'
+                : 'linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(9, 11, 17, 0.6) 100%)',
             borderColor: 'var(--accent-color)',
             display: 'flex',
             justifyContent: 'space-between',
@@ -344,7 +350,7 @@ export default function Dashboard({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Activity size={18} style={{ color: 'var(--accent-color)' }} />
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
             Son 14 Günlük Aktivite Haritası
           </h3>
         </div>
@@ -356,7 +362,7 @@ export default function Dashboard({
               display: 'flex',
               gap: '0.5rem',
               justifyContent: 'space-between',
-              background: 'rgba(9, 11, 17, 0.4)',
+              background: 'var(--bg-transparent)',
               padding: '1.25rem 1rem',
               borderRadius: '12px',
               border: '1px solid var(--border-color)',
@@ -404,7 +410,7 @@ export default function Dashboard({
                     style={{
                       fontSize: '0.75rem',
                       fontWeight: 600,
-                      color: dayActivity.total > 0 ? '#fff' : 'var(--text-muted)'
+                      color: dayActivity.total > 0 ? 'var(--text-primary)' : 'var(--text-muted)'
                     }}
                   >
                     {dayActivity.total}
@@ -431,7 +437,7 @@ export default function Dashboard({
                 style={{
                   width: '12px',
                   height: '12px',
-                  background: '#171e30',
+                  background: theme === 'light' ? '#cbd5e1' : '#171e30',
                   borderRadius: '3px'
                 }}
               />
@@ -489,7 +495,7 @@ export default function Dashboard({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Brain size={18} style={{ color: 'var(--accent-color)' }} />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
               Öğrenme Analizleri
             </h3>
           </div>
@@ -501,14 +507,14 @@ export default function Dashboard({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: 'rgba(9, 11, 17, 0.4)',
+                background: 'var(--bg-transparent)',
                 padding: '0.75rem 1rem',
                 borderRadius: '10px',
                 border: '1px solid var(--border-color)'
               }}
             >
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                   Hafıza Gücü
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -534,14 +540,14 @@ export default function Dashboard({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: 'rgba(9, 11, 17, 0.4)',
+                background: 'var(--bg-transparent)',
                 padding: '0.75rem 1rem',
                 borderRadius: '10px',
                 border: '1px solid var(--border-color)'
               }}
             >
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                   Ortalama Quiz Başarısı
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -575,7 +581,7 @@ export default function Dashboard({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <TrendingUp size={18} style={{ color: 'var(--warning)' }} />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
               Gelecek Ders Yükü
             </h3>
           </div>
@@ -586,24 +592,24 @@ export default function Dashboard({
                 display: 'flex',
                 justifyContent: 'space-between',
                 fontSize: '0.85rem',
-                borderBottom: '1px solid rgba(255,255,255,0.03)',
+                borderBottom: '1px solid var(--border-trans)',
                 paddingBottom: '0.4rem'
               }}
             >
               <span style={{ color: 'var(--text-secondary)' }}>Yarın (24 Saat içinde):</span>
-              <span style={{ fontWeight: 700, color: '#fff' }}>{dueTomorrow} kelime</span>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{dueTomorrow} kelime</span>
             </div>
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 fontSize: '0.85rem',
-                borderBottom: '1px solid rgba(255,255,255,0.03)',
+                borderBottom: '1px solid var(--border-trans)',
                 paddingBottom: '0.4rem'
               }}
             >
               <span style={{ color: 'var(--text-secondary)' }}>3 Gün içinde:</span>
-              <span style={{ fontWeight: 700, color: '#fff' }}>{dueIn3Days} kelime</span>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{dueIn3Days} kelime</span>
             </div>
             <div
               style={{
@@ -614,7 +620,7 @@ export default function Dashboard({
               }}
             >
               <span style={{ color: 'var(--text-secondary)' }}>7 Gün içinde:</span>
-              <span style={{ fontWeight: 700, color: '#fff' }}>{dueIn7Days} kelime</span>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{dueIn7Days} kelime</span>
             </div>
           </div>
         </div>
@@ -633,7 +639,7 @@ export default function Dashboard({
           className="glass-card"
           style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
         >
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>Öğrenme Durumu</h3>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>Öğrenme Durumu</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
               <div
@@ -645,13 +651,13 @@ export default function Dashboard({
                 }}
               >
                 <span style={{ color: 'var(--text-secondary)' }}>Öğrenilen Kelimeler</span>
-                <span style={{ fontWeight: 600, color: '#fff' }}>{learningCount}</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{learningCount}</span>
               </div>
               <div
                 style={{
                   width: '100%',
                   height: '6px',
-                  background: 'rgba(255,255,255,0.05)',
+                  background: 'var(--border-trans)',
                   borderRadius: '3px'
                 }}
               >
@@ -678,13 +684,13 @@ export default function Dashboard({
                 <span style={{ color: 'var(--text-secondary)' }}>
                   Ustalaşılan Kelimeler (Uzun Vade)
                 </span>
-                <span style={{ fontWeight: 600, color: '#fff' }}>{masteredCount}</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{masteredCount}</span>
               </div>
               <div
                 style={{
                   width: '100%',
                   height: '6px',
-                  background: 'rgba(255,255,255,0.05)',
+                  background: 'var(--border-trans)',
                   borderRadius: '3px'
                 }}
               >
@@ -711,13 +717,13 @@ export default function Dashboard({
                 <span style={{ color: 'var(--text-secondary)' }}>
                   Henüz Gözden Geçirilmemiş Kelimeler
                 </span>
-                <span style={{ fontWeight: 600, color: '#fff' }}>{newCount}</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{newCount}</span>
               </div>
               <div
                 style={{
                   width: '100%',
                   height: '6px',
-                  background: 'rgba(255,255,255,0.05)',
+                  background: 'var(--border-trans)',
                   borderRadius: '3px'
                 }}
               >
@@ -739,7 +745,7 @@ export default function Dashboard({
           className="glass-card"
           style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
         >
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
             Kelime Türü Dağılımı
           </h3>
           <div
@@ -779,7 +785,7 @@ export default function Dashboard({
                   style={{
                     flex: '1 1 40%',
                     padding: '0.75rem 1rem',
-                    background: 'rgba(9, 11, 17, 0.4)',
+                    background: 'var(--bg-transparent)',
                     border: '1px solid var(--border-color)',
                     borderRadius: '12px',
                     display: 'flex',
@@ -806,7 +812,7 @@ export default function Dashboard({
                     />
                     {labels[type]}
                   </span>
-                  <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff' }}>
+                  <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                     {types[type]}
                   </span>
                 </div>
@@ -824,7 +830,7 @@ export default function Dashboard({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Trophy size={18} style={{ color: 'var(--warning)' }} />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
               Son Çözülen Quizler
             </h3>
           </div>
@@ -872,11 +878,11 @@ export default function Dashboard({
                           : 'Karma Test';
 
                     return (
-                      <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                      <tr key={idx} style={{ borderBottom: '1px solid var(--border-trans)' }}>
                         <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>
                           {qDate}
                         </td>
-                        <td style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#fff' }}>
+                        <td style={{ padding: '0.75rem 1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                           {q.deckName}
                         </td>
                         <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>

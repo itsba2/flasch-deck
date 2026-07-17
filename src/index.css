@@ -33,6 +33,14 @@
   --sr-hard: #f59e0b;
   --sr-good: #3b82f6;
   --sr-easy: #10b981;
+
+  /* Theme-aware background & border variables */
+  --bg-transparent: rgba(9, 11, 17, 0.4);
+  --bg-trans-light: rgba(255, 255, 255, 0.03);
+  --border-trans: rgba(255, 255, 255, 0.05);
+
+  --card-front-bg: radial-gradient(circle at top right, #1d253f, #111627);
+  --card-back-bg: radial-gradient(circle at top right, #161e38, #0e1220);
 }
 
 * {
@@ -105,7 +113,7 @@ body {
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: 0.5px;
-  background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-color) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -192,7 +200,7 @@ body {
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-primary);
-  background: linear-gradient(135deg, #fff 30%, var(--text-secondary) 100%);
+  background: linear-gradient(135deg, var(--text-primary) 30%, var(--text-secondary) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -364,11 +372,11 @@ body {
 }
 
 .card-front {
-  background: radial-gradient(circle at top right, #1d253f, #111627);
+  background: var(--card-front-bg);
 }
 
 .card-back {
-  background: radial-gradient(circle at top right, #161e38, #0e1220);
+  background: var(--card-back-bg);
   transform: rotateY(180deg);
 }
 

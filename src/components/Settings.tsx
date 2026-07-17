@@ -1,154 +1,206 @@
-import React, { useState } from 'react';
-import { Key, Save, AlertTriangle, ShieldCheck, Database, FileJson } from 'lucide-react';
+import { useState } from 'react';
+import { Key, Save, AlertTriangle, ShieldCheck, Database, FileJson, Palette } from 'lucide-react';
+import { Card, Form, Input, Button, Space, Typography, Modal, message, Segmented } from 'antd';
 import { AppConfig } from '../global';
 
+const { Title, Text } = Typography;
+
 interface SettingsProps {
-  apiKey: string;
+  config: AppConfig;
   onSaveConfig: (config: AppConfig) => Promise<void>;
   onResetApp: () => Promise<void>;
 }
 
-export default function Settings({ apiKey, onSaveConfig, onResetApp }: SettingsProps) {
-  const [keyInput, setKeyInput] = useState(apiKey || '');
-  const [saveStatus, setSaveStatus] = useState('');
+export default function Settings({ config, onSaveConfig, onResetApp }: SettingsProps) {
+  const [keyInput, setKeyInput] = useState(config.apiKey || '');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaveStatus('kaydediliyor...');
+  const handleSave = async () => {
+    setIsSaving(true);
     try {
-      await onSaveConfig({ apiKey: keyInput.trim() });
-      setSaveStatus('API anahtarı başarıyla kaydedildi!');
-      setTimeout(() => setSaveStatus(''), 3000);
+      await onSaveConfig({ ...config, apiKey: keyInput.trim() });
+      message.success('API anahtarı başarıyla kaydedildi!');
     } catch {
-      setSaveStatus('Kaydetme hatası!');
+      message.error('Kaydetme hatası!');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const handleReset = async () => {
-    if (
-      confirm(
-        'DİKKAT! Tüm destelerinizi ve kartlarınızı silerek uygulamayı sıfırlamak istediğinize emin misiniz? Bu işlem geri alınamaz.'
-      )
-    ) {
-      await onResetApp();
-      alert('Uygulama başarıyla sıfırlandı ve varsayılan Almanca A1 destesi yüklendi.');
+  const handleThemeChange = async (val: 'light' | 'dark') => {
+    try {
+      await onSaveConfig({ ...config, theme: val });
+      message.success('Tema güncellendi!');
+    } catch {
+      message.error('Tema güncellenirken hata oluştu.');
     }
+  };
+
+  const handleFontSizeChange = async (val: 'small' | 'medium' | 'large') => {
+    try {
+      await onSaveConfig({ ...config, fontSize: val });
+      message.success('Yazı boyutu güncellendi!');
+    } catch {
+      message.error('Yazı boyutu güncellenirken hata oluştu.');
+    }
+  };
+
+  const handleReset = () => {
+    Modal.confirm({
+      title: 'Uygulama Verilerini Sıfırla',
+      content: 'DİKKAT! Tüm destelerinizi ve kartlarınızı silerek uygulamayı sıfırlamak istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      okText: 'Evet, Sıfırla',
+      okType: 'danger',
+      cancelText: 'Vazgeç',
+      onOk: async () => {
+        try {
+          await onResetApp();
+          message.success('Uygulama başarıyla sıfırlandı ve varsayılan Almanca A1 destesi yüklendi.');
+        } catch {
+          message.error('Sıfırlama sırasında hata oluştu.');
+        }
+      }
+    });
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '700px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '700px', width: '100%' }}>
       <div>
-        <h1 className="page-title">Ayarlar</h1>
-        <p className="page-subtitle">
+        <Title level={2} style={{ margin: 0 }}>Ayarlar</Title>
+        <Text type="secondary">
           Uygulama tercihlerini ve yerel veri yapılandırmasını yönetin.
-        </p>
+        </Text>
       </div>
 
-      {/* 1. Gemini API Config */}
-      <div
-        className="glass-card"
-        style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
+      {/* 1. Appearance Config */}
+      <Card
+        title={
+          <Space>
+            <Palette size={22} style={{ color: 'var(--accent-color)' }} />
+            <span style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 700 }}>
+              Görünüm Ayarları
+            </span>
+          </Space>
+        }
+        bordered={true}
       >
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <Key size={22} style={{ color: 'var(--accent-color)' }} />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
-            Gemini Yapay Zeka Entegrasyonu
-          </h3>
-        </div>
-
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-          Uygulamada kelime kartı eklerken <strong>"Yapay Zeka ile Doldur"</strong> butonunu
-          kullanmak ve Almanca vs Türkçe dilbilgisi karşılaştırma açıklamaları almak için bir Google
-          Gemini API anahtarı ekleyebilirsiniz. API anahtarınız{' '}
-          <strong>tamamen yerel olarak</strong> bilgisayarınızda saklanır ve doğrudan Google
-          sunucularına gönderilir.
-        </p>
-
-        <form
-          onSubmit={handleSave}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-        >
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">Gemini API Anahtarı (API Key)</label>
-            <input
-              className="form-input"
-              type="password"
-              value={keyInput}
-              onChange={(e) => setKeyInput(e.target.value)}
-              placeholder="AIzaSy..."
-              required
+        <Space direction="vertical" size="middle" style={{ display: 'flex', width: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Text type="secondary" style={{ fontWeight: 500 }}>Tema Tercihi</Text>
+            <Segmented
+              options={[
+                { label: 'Pozitif Enerji (Açık)', value: 'light' },
+                { label: 'Modern Slate (Koyu)', value: 'dark' }
+              ]}
+              value={config.theme || 'light'}
+              onChange={(val) => handleThemeChange(val as 'light' | 'dark')}
+              block
+              size="large"
             />
           </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Text type="secondary" style={{ fontWeight: 500 }}>Yazı Boyutu</Text>
+            <Segmented
+              options={[
+                { label: '14px (Küçük)', value: 'small' },
+                { label: '18px (Orta)', value: 'medium' },
+                { label: '22px (Büyük)', value: 'large' }
+              ]}
+              value={config.fontSize || 'small'}
+              onChange={(val) => handleFontSizeChange(val as 'small' | 'medium' | 'large')}
+              block
+              size="large"
+            />
+          </div>
+        </Space>
+      </Card>
+
+      {/* 2. Gemini API Config */}
+      <Card
+        title={
+          <Space>
+            <Key size={22} style={{ color: 'var(--accent-color)' }} />
+            <span style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 700 }}>
+              Gemini Yapay Zeka Entegrasyonu
+            </span>
+          </Space>
+        }
+        bordered={true}
+      >
+        <Space direction="vertical" size="middle" style={{ display: 'flex', width: '100%' }}>
+          <Text type="secondary" style={{ fontSize: '0.85rem', lineHeight: '1.4', display: 'block' }}>
+            Uygulamada kelime kartı eklerken <strong>"Yapay Zeka ile Doldur"</strong> butonunu
+            kullanmak ve Almanca vs Türkçe dilbilgisi karşılaştırma açıklamaları almak için bir Google
+            Gemini API anahtarı ekleyebilirsiniz. API anahtarınız{' '}
+            <strong>tamamen yerel olarak</strong> bilgisayarınızda saklanır ve doğrudan Google
+            sunucularına gönderilir.
+          </Text>
+
+          <Form layout="vertical" onFinish={handleSave}>
+            <Form.Item label={<span style={{ color: 'var(--text-secondary)' }}>Gemini API Anahtarı (API Key)</span>} required>
+              <Input.Password
+                value={keyInput}
+                onChange={(e) => setKeyInput(e.target.value)}
+                placeholder="AIzaSy..."
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item style={{ margin: 0, textAlign: 'right' }}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<Save size={16} />}
+                loading={isSaving}
+                size="large"
+              >
+                Anahtarı Kaydet
+              </Button>
+            </Form.Item>
+          </Form>
 
           <div
             style={{
               display: 'flex',
-              justifyContent: 'space-between',
+              gap: '0.5rem',
+              fontSize: '0.75rem',
+              color: 'var(--text-muted)',
               alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '1rem'
+              borderTop: '1px solid var(--border-trans)',
+              paddingTop: '0.75rem',
+              marginTop: '0.5rem'
             }}
           >
-            <span
-              style={{
-                fontSize: '0.85rem',
-                color: saveStatus.includes('hata') ? 'var(--danger)' : 'var(--success)',
-                fontWeight: 550
-              }}
-            >
-              {saveStatus}
-            </span>
-            <button type="submit" className="btn btn-primary" style={{ gap: '0.5rem' }}>
-              <Save size={16} /> Anahtarı Kaydet
-            </button>
+            <ShieldCheck size={14} style={{ color: 'var(--success)' }} />
+            <Text type="secondary" style={{ fontSize: '0.75rem' }}>
+              Verileriniz güvende: Yerel sandbox dışına hiçbir veriniz sızdırılmaz.
+            </Text>
           </div>
-        </form>
+        </Space>
+      </Card>
 
-        <div
-          style={{
-            display: 'flex',
-            gap: '0.5rem',
-            fontSize: '0.75rem',
-            color: 'var(--text-muted)',
-            alignItems: 'center',
-            borderTop: '1px solid rgba(255,255,255,0.05)',
-            paddingTop: '0.75rem',
-            marginTop: '0.5rem'
-          }}
-        >
-          <ShieldCheck size={14} style={{ color: 'var(--success)' }} />
-          Verileriniz güvende: Yerel sandbox dışına hiçbir veriniz sızdırılmaz.
-        </div>
-      </div>
-
-      {/* 2. Local Storage Info */}
-      <div
-        className="glass-card"
-        style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
+      {/* 3. Local Storage Info */}
+      <Card
+        title={
+          <Space>
+            <Database size={22} style={{ color: 'var(--success)' }} />
+            <span style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 700 }}>
+              Yerel Depolama ve Veri Bilgisi
+            </span>
+          </Space>
+        }
+        bordered={true}
       >
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <Database size={22} style={{ color: 'var(--success)' }} />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
-            Yerel Depolama ve Veri Bilgisi
-          </h3>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-            fontSize: '0.85rem',
-            color: 'var(--text-secondary)'
-          }}
-        >
-          <p>
+        <Space direction="vertical" size="middle" style={{ display: 'flex', width: '100%' }}>
+          <Text type="secondary" style={{ fontSize: '0.85rem', display: 'block' }}>
             Tüm desteleriniz ve ilerleme verileriniz (aralıklı tekrar süreleri) bilgisayarınızda
             yerel <strong>JSON</strong> dosyaları olarak saklanır.
-          </p>
+          </Text>
+
           <div
             style={{
-              background: 'rgba(9, 11, 17, 0.4)',
+              background: 'var(--bg-transparent)',
               border: '1px solid var(--border-color)',
               padding: '1rem',
               borderRadius: '10px',
@@ -160,44 +212,41 @@ export default function Settings({ apiKey, onSaveConfig, onResetApp }: SettingsP
               color: 'var(--text-primary)'
             }}
           >
-            <FileJson size={16} style={{ color: 'var(--accent-color)' }} />
+            <FileJson size={16} style={{ color: 'var(--accent-color)', flexShrink: 0 }} />
             <span>[Uygulama Veri Dizini]/decks/*.json</span>
           </div>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+
+          <Text type="secondary" style={{ fontSize: '0.8rem' }}>
             Desteler sekmesini kullanarak destelerinizi <code>.json</code> olarak dışarı aktarabilir
             (yedeklemek için) veya başka bir bilgisayardan desteleri içe aktarabilirsiniz.
-          </p>
-        </div>
-      </div>
+          </Text>
+        </Space>
+      </Card>
 
-      {/* 3. Dangerous Settings / Reset */}
-      <div
-        className="glass-card"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1.25rem',
-          borderColor: 'rgba(239, 68, 68, 0.3)'
-        }}
+      {/* 4. Dangerous Settings / Reset */}
+      <Card
+        title={
+          <Space>
+            <AlertTriangle size={22} style={{ color: 'var(--danger)' }} />
+            <span style={{ color: 'var(--danger)', fontSize: '1.1rem', fontWeight: 700 }}>
+              Tehlikeli Bölge
+            </span>
+          </Space>
+        }
+        style={{ borderColor: 'rgba(239, 68, 68, 0.3)' }}
+        bordered={true}
       >
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <AlertTriangle size={22} style={{ color: 'var(--danger)' }} />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--danger)' }}>
-            Tehlikeli Bölge
-          </h3>
-        </div>
+        <Space direction="vertical" size="middle" style={{ display: 'flex', width: '100%' }}>
+          <Text type="secondary" style={{ fontSize: '0.85rem', display: 'block' }}>
+            Uygulamayı ilk yükleme durumuna döndürür. Tüm oluşturduğunuz kelime kartları, eklediğiniz
+            desteler ve geçmiş öğrenme verileriniz kalıcı olarak <strong>silinir</strong>.
+          </Text>
 
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-          Uygulamayı ilk yükleme durumuna döndürür. Tüm oluşturduğunuz kelime kartları, eklediğiniz
-          desteler ve geçmiş öğrenme verileriniz kalıcı olarak <strong>silinir</strong>.
-        </p>
-
-        <div>
-          <button className="btn btn-danger" onClick={handleReset}>
+          <Button type="primary" danger size="large" onClick={handleReset}>
             Uygulama Verilerini Sıfırla
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Space>
+      </Card>
     </div>
   );
 }
