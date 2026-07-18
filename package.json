@@ -16,7 +16,8 @@
     "preview": "vite preview",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\" \"*.json\"",
     "knip": "knip",
-    "madge": "madge --circular src/main.tsx"
+    "madge": "madge --circular src/main.tsx",
+    "version": "node scripts/update-version.js && git add docs/"
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.2",
