@@ -151,7 +151,7 @@ async function fetchLatestReleases() {
     console.error('Sürümler çekilirken hata oluştu, yerel varsayılanlar yükleniyor:', error);
 
     // Graceful fallback to static data
-    releaseVersion.textContent = 'Son Sürüm: v1.2.0';
+    releaseVersion.textContent = 'Son Sürüm: v1.2.1';
 
     handleAssetFallback(winCount);
     handleAssetFallback(macCount);
