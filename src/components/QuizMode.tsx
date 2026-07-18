@@ -283,9 +283,6 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-          <span style={{ color: 'var(--text-muted)', width: '120px', textAlign: 'right' }}>
-            Sizin Cevabınız:
-          </span>
           <span
             style={{
               fontFamily: 'monospace',
@@ -298,9 +295,6 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-          <span style={{ color: 'var(--text-muted)', width: '120px', textAlign: 'right' }}>
-            Doğru Çekim:
-          </span>
           <span
             style={{
               fontFamily: 'monospace',
@@ -331,9 +325,9 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
     >
       {/* 1. Setup screen */}
       {!quizActive && !quizFinished && (
-        <div style={{ maxWidth: '600px', width: '100%' }}>
+        <div style={{ maxWidth: '43rem', width: '100%' }}>
           <div style={{ marginBottom: '2rem' }}>
-            <Title level={2}>Hızlı Quiz Arenası</Title>
+            <Title level={2}>Hızlı Quiz</Title>
             <Text type="secondary">Seçtiğiniz destelerle yazım ve artikel bilginizi ölçün.</Text>
           </div>
 
@@ -402,7 +396,7 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
 
       {/* 2. Active Quiz Screen */}
       {quizActive && currentCard && (
-        <div style={{ maxWidth: '600px', width: '100%' }}>
+        <div style={{ maxWidth: '43rem', width: '100%' }}>
           {/* Header Stats */}
           <div
             style={{
@@ -446,17 +440,6 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
           >
             {/* Question Definition */}
             <div style={{ textAlign: 'center' }}>
-              <Text
-                type="secondary"
-                style={{
-                  fontSize: '0.75rem',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  letterSpacing: '0.5px'
-                }}
-              >
-                Kelimenin Türkçe Anlamı
-              </Text>
               <Title
                 level={2}
                 style={{
@@ -466,7 +449,7 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                   margin: '0.5rem 0 0 0'
                 }}
               >
-                {currentCard.turkish}
+                {quizType === 'articles' ? currentCard.german : currentCard.turkish}
               </Title>
               {currentCard.type === 'noun' && quizType !== 'articles' && (
                 <Text
@@ -474,6 +457,14 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                   style={{ fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}
                 >
                   (İsim - Lütfen artikeli {quizType === 'mixed' ? 'dahil ederek' : 'olmadan'} yazın)
+                </Text>
+              )}
+              {quizType === 'articles' && (
+                <Text
+                  type="secondary"
+                  style={{ fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}
+                >
+                  {currentCard.turkish}
                 </Text>
               )}
             </div>
@@ -543,7 +534,6 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                     size="large"
                     value={userAnswer}
                     onChange={(e) => setUserAnswer(e.target.value)}
-                    placeholder="Almanca kelimeyi buraya yazın..."
                     disabled={checked}
                     autoFocus
                     style={{ textAlign: 'center', fontSize: '1.25rem', fontWeight: 600 }}
@@ -586,9 +576,6 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
 
                 {!isCorrect && (
                   <div style={{ marginTop: '0.5rem' }}>
-                    <Text type="secondary" style={{ fontSize: '0.8rem', display: 'block' }}>
-                      Doğru Cevap:
-                    </Text>
                     {quizType === 'articles' ? (
                       <div
                         style={{
@@ -659,7 +646,7 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
 
       {/* 3. Quiz Finished / Scorecard Screen */}
       {quizFinished && (
-        <div style={{ maxWidth: '600px', width: '100%' }}>
+        <div style={{ maxWidth: '43rem', width: '100%' }}>
           <Card bordered={true}>
             <Result
               status="success"
@@ -681,7 +668,7 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                     borderRadius: '16px',
                     padding: '1.5rem 1rem',
                     width: '100%',
-                    maxWidth: '500px',
+                    maxWidth: '35.5rem',
                     margin: '0 auto 1.5rem auto'
                   }}
                 >
@@ -715,7 +702,7 @@ export default function QuizMode({ decks, onLogQuizSession }: QuizModeProps) {
                       textAlign: 'left',
                       marginTop: '1rem',
                       width: '100%',
-                      maxWidth: '500px',
+                      maxWidth: '35.5rem',
                       margin: '0 auto 1.5rem auto'
                     }}
                     key="errors"

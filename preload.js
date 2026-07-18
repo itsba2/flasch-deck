@@ -7,5 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   exportDeck: (deck) => ipcRenderer.invoke('export-deck', deck),
   importDeck: () => ipcRenderer.invoke('import-deck'),
   getConfig: () => ipcRenderer.invoke('get-config'),
-  saveConfig: (config) => ipcRenderer.invoke('save-config', config)
+  saveConfig: (config) => ipcRenderer.invoke('save-config', config),
+  getStats: () => ipcRenderer.invoke('get-stats'),
+  saveStats: (stats) => ipcRenderer.invoke('save-stats', stats)
 });

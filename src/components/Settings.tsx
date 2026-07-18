@@ -72,7 +72,7 @@ export default function Settings({ config, onSaveConfig, onResetApp }: SettingsP
         display: 'flex',
         flexDirection: 'column',
         gap: '2rem',
-        maxWidth: '700px',
+        maxWidth: '50rem',
         width: '100%'
       }}
     >

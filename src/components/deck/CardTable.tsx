@@ -96,7 +96,7 @@ export default function CardTable({
           <Tooltip title="Kelimeyi Düzenle">
             <Button
               size="small"
-              icon={<EditOutlined style={{ fontSize: '12px' }} />}
+              icon={<EditOutlined />}
               onClick={() => onEditCard(record)}
             />
           </Tooltip>
@@ -104,7 +104,7 @@ export default function CardTable({
             <Button
               size="small"
               danger
-              icon={<DeleteOutlined style={{ fontSize: '12px' }} />}
+              icon={<DeleteOutlined />}
               onClick={() => onDeleteCard(record.id)}
             />
           </Tooltip>
@@ -134,7 +134,7 @@ export default function CardTable({
         }}
       >
         <Input
-          style={{ maxWidth: '400px', flexGrow: 1 }}
+          style={{ maxWidth: '28.5rem', flexGrow: 1 }}
           prefix={<SearchOutlined style={{ color: 'var(--text-muted)' }} />}
           placeholder="Almanca veya Türkçe ara..."
           value={searchTerm}

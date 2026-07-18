@@ -175,7 +175,7 @@ export default function StudySession({
     >
       {/* 1. Deck Selector */}
       {!sessionActive && (
-        <div style={{ maxWidth: '600px', width: '100%' }}>
+        <div style={{ maxWidth: '43rem', width: '100%' }}>
           <div style={{ marginBottom: '2rem' }}>
             <Title level={2}>Kart Çalışması (SM-2)</Title>
             <Text type="secondary">
@@ -240,7 +240,7 @@ export default function StudySession({
 
       {/* 2. Review Session Card Flip UI */}
       {sessionActive && currentCard && (
-        <div style={{ maxWidth: '650px', width: '100%' }}>
+        <div style={{ maxWidth: '46.5rem', width: '100%' }}>
           {/* Active Session Header */}
           <div
             style={{

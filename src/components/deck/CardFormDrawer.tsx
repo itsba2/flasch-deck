@@ -74,7 +74,7 @@ export default function CardFormDrawer({
   onCancel
 }: CardFormDrawerProps) {
   return (
-    <div style={{ maxWidth: '700px', margin: '0 auto', width: '100%' }}>
+    <div style={{ maxWidth: '50rem', margin: '0 auto', width: '100%' }}>
       <div
         style={{
           display: 'flex',

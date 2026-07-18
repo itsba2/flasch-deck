@@ -292,3 +292,61 @@ body {
   box-shadow: inset 4px 0 0 0 var(--accent-color);
   padding-left: calc(1.5rem - 4px) !important;
 }
+
+/* ==========================================================================
+   Responsive UI Icon & Layout Scaling Overrides
+   ========================================================================== */
+
+/* Automatically scale Ant Design Icons in Buttons & Inputs */
+.ant-btn .anticon {
+  font-size: inherit !important;
+}
+.ant-input-affix-wrapper .anticon {
+  font-size: inherit !important;
+}
+
+/* Automatically scale Lucide Icons inside Buttons, Menus, Selects & Inputs relative to font size */
+.ant-btn .lucide,
+.ant-menu .lucide,
+.ant-select .lucide {
+  width: 1.15em !important;
+  height: 1.15em !important;
+}
+.ant-input-affix-wrapper .lucide {
+  width: 1.1em !important;
+  height: 1.1em !important;
+}
+
+/* Default Lucide icon layout rule (scales with context text size) */
+svg.lucide {
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: middle;
+}
+
+/* Explicit scaling classes in REMs to dynamically scale with the root font size */
+svg.lucide.icon-xs { width: 0.85rem !important; height: 0.85rem !important; }
+svg.lucide.icon-sm { width: 1.1rem !important; height: 1.1rem !important; }
+svg.lucide.icon-normal { width: 1.25rem !important; height: 1.25rem !important; }
+svg.lucide.icon-md { width: 1.40rem !important; height: 1.40rem !important; }
+svg.lucide.icon-lg { width: 2rem !important; height: 2rem !important; }
+svg.lucide.icon-xl { width: 2.5rem !important; height: 2.5rem !important; }
+svg.lucide.icon-xxl { width: 3.5rem !important; height: 3.5rem !important; }
+
+/* Custom override for Logo icon */
+.logo-icon {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+/* Prevent Segmented control labels from clipping or truncating under larger UI sizes */
+.ant-segmented .ant-segmented-item-label {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.2 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100% !important;
+}
+

@@ -15,6 +15,7 @@ let mainWindow;
 const userDataPath = app.getPath('userData');
 const decksDir = path.join(userDataPath, 'decks');
 const configFile = path.join(userDataPath, 'config.json');
+const statsFile = path.join(userDataPath, 'stats.json');
 
 // Ensure directories and config exist
 if (!fs.existsSync(decksDir)) {
@@ -267,7 +268,22 @@ ipcMain.handle('get-config', async () => {
   try {
     if (fs.existsSync(configFile)) {
       const data = fs.readFileSync(configFile, 'utf-8');
-      return JSON.parse(data);
+      const config = JSON.parse(data);
+
+      // Migration: Move existing stats from config.json to stats.json
+      if (config.studyHistory || config.quizHistory) {
+        const stats = {
+          studyHistory: config.studyHistory || [],
+          quizHistory: config.quizHistory || []
+        };
+        fs.writeFileSync(statsFile, JSON.stringify(stats), 'utf-8');
+        
+        delete config.studyHistory;
+        delete config.quizHistory;
+        fs.writeFileSync(configFile, JSON.stringify(config, null, 2), 'utf-8');
+      }
+
+      return config;
     }
     return {};
   } catch (error) {
@@ -279,10 +295,35 @@ ipcMain.handle('get-config', async () => {
 // Save user configuration
 ipcMain.handle('save-config', async (event, config) => {
   try {
-    fs.writeFileSync(configFile, JSON.stringify(config, null, 2), 'utf-8');
+    await fs.promises.writeFile(configFile, JSON.stringify(config, null, 2), 'utf-8');
     return { success: true };
   } catch (error) {
     console.error('Error saving config:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Get user statistics
+ipcMain.handle('get-stats', async () => {
+  try {
+    if (fs.existsSync(statsFile)) {
+      const data = await fs.promises.readFile(statsFile, 'utf-8');
+      return JSON.parse(data);
+    }
+    return { studyHistory: [], quizHistory: [] };
+  } catch (error) {
+    console.error('Error reading stats:', error);
+    return { studyHistory: [], quizHistory: [] };
+  }
+});
+
+// Save user statistics (async + minified)
+ipcMain.handle('save-stats', async (event, stats) => {
+  try {
+    await fs.promises.writeFile(statsFile, JSON.stringify(stats), 'utf-8');
+    return { success: true };
+  } catch (error) {
+    console.error('Error saving stats:', error);
     return { success: false, error: error.message };
   }
 });

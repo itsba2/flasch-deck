@@ -102,14 +102,14 @@ export default function DeckList({
                   <Tooltip title="Dışa Aktar">
                     <Button
                       size="small"
-                      icon={<ExportOutlined style={{ fontSize: '12px' }} />}
+                      icon={<ExportOutlined />}
                       onClick={() => onExportDeck(deck)}
                     />
                   </Tooltip>
                   <Tooltip title="Deste Bilgilerini Düzenle">
                     <Button
                       size="small"
-                      icon={<EditOutlined style={{ fontSize: '12px' }} />}
+                      icon={<EditOutlined />}
                       onClick={() => onEditDeckClick(deck)}
                     />
                   </Tooltip>

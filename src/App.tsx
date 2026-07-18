@@ -12,7 +12,7 @@ import DeckManager from './components/DeckManager';
 import StudySession from './components/StudySession';
 import QuizMode from './components/QuizMode';
 import Settings from './components/Settings';
-import { Card, Deck, AppConfig, StudyHistoryItem, QuizHistoryItem } from './global';
+import { Card, Deck, AppConfig, StudyHistoryItem, QuizHistoryItem, AppStats } from './global';
 
 const { Sider, Content } = Layout;
 
@@ -24,23 +24,32 @@ export default function App() {
     fontSize: 'small',
     theme: 'light'
   });
+  const [stats, setStats] = useState<AppStats>({
+    studyHistory: [],
+    quizHistory: []
+  });
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load Decks & Configurations on startup
+  // Load Decks, Configurations & Statistics on startup
   useEffect(() => {
     async function loadData() {
       try {
         if (window.electronAPI) {
           const loadedDecks = await window.electronAPI.getDecks();
           const loadedConfig = await window.electronAPI.getConfig();
+          const loadedStats = await window.electronAPI.getStats();
           setDecks(loadedDecks || []);
           setConfig(
             loadedConfig || {
               apiKey: '',
-              studyHistory: [],
-              quizHistory: [],
               fontSize: 'small',
               theme: 'light'
+            }
+          );
+          setStats(
+            loadedStats || {
+              studyHistory: [],
+              quizHistory: []
             }
           );
         } else {
@@ -214,7 +223,7 @@ export default function App() {
   // Log study session completion
   const handleLogStudySession = async (sessionStats: { reviewed: number; grades: number[] }) => {
     const today = new Date().toISOString().split('T')[0];
-    const currentStudyHistory: StudyHistoryItem[] = [...(config.studyHistory || [])];
+    const currentStudyHistory: StudyHistoryItem[] = [...(stats.studyHistory || [])];
     const existingIndex = currentStudyHistory.findIndex((h) => h.date === today);
 
     if (existingIndex >= 0) {
@@ -231,23 +240,39 @@ export default function App() {
       });
     }
 
-    const updatedConfig: AppConfig = {
-      ...config,
+    const updatedStats: AppStats = {
+      ...stats,
       studyHistory: currentStudyHistory
     };
-    handleSaveConfig(updatedConfig);
+    
+    try {
+      if (window.electronAPI) {
+        await window.electronAPI.saveStats(updatedStats);
+        setStats(updatedStats);
+      }
+    } catch (e) {
+      console.error('İstatistik kaydetme hatası:', e);
+    }
   };
 
   // Log quiz session completion
   const handleLogQuizSession = async (quizStats: QuizHistoryItem) => {
-    const currentQuizHistory: QuizHistoryItem[] = [...(config.quizHistory || [])];
+    const currentQuizHistory: QuizHistoryItem[] = [...(stats.quizHistory || [])];
     currentQuizHistory.push(quizStats);
 
-    const updatedConfig: AppConfig = {
-      ...config,
+    const updatedStats: AppStats = {
+      ...stats,
       quizHistory: currentQuizHistory
     };
-    handleSaveConfig(updatedConfig);
+
+    try {
+      if (window.electronAPI) {
+        await window.electronAPI.saveStats(updatedStats);
+        setStats(updatedStats);
+      }
+    } catch (e) {
+      console.error('Quiz istatistiği kaydetme hatası:', e);
+    }
   };
 
   // Reset application
@@ -262,11 +287,19 @@ export default function App() {
         // Reset configuration history but keep API key
         const resetConfig: AppConfig = {
           apiKey: config.apiKey || '',
-          studyHistory: [],
-          quizHistory: []
+          fontSize: config.fontSize || 'small',
+          theme: config.theme || 'light'
         };
         await window.electronAPI.saveConfig(resetConfig);
         setConfig(resetConfig);
+
+        // Reset stats
+        const resetStats: AppStats = {
+          studyHistory: [],
+          quizHistory: []
+        };
+        await window.electronAPI.saveStats(resetStats);
+        setStats(resetStats);
 
         // Save default starter deck
         const defaultDeck: Deck = {
@@ -353,6 +386,8 @@ export default function App() {
 
   const antDesignTokens = {
     fontSize: isLarge ? 22 : isMedium ? 18 : 14,
+    fontSizeSM: isLarge ? 18 : isMedium ? 15 : 12,
+    fontSizeLG: isLarge ? 26 : isMedium ? 21 : 16,
     paddingXS: isLarge ? 12 : isMedium ? 10 : 8,
     paddingSM: isLarge ? 16 : isMedium ? 14 : 12,
     padding: isLarge ? 24 : isMedium ? 20 : 16,
@@ -482,9 +517,11 @@ export default function App() {
             {activeRoute === 'dashboard' && (
               <Dashboard
                 decks={decks}
-                studyHistory={config.studyHistory || []}
-                quizHistory={config.quizHistory || []}
+                studyHistory={stats.studyHistory || []}
+                quizHistory={stats.quizHistory || []}
                 onNavigate={setActiveRoute}
+                theme={config.theme || 'light'}
+                onUpdateCard={handleUpdateCard}
               />
             )}
             {activeRoute === 'decks' && (

@@ -66,7 +66,7 @@ export default function DeckFormModal({
 }: DeckFormModalProps) {
   return (
     <Card
-      style={{ maxWidth: '600px', margin: '0 auto 1.5rem auto', width: '100%' }}
+      style={{ maxWidth: '43rem', margin: '0 auto 1.5rem auto', width: '100%' }}
       bordered={true}
     >
       {isGeneratingDeck ? (

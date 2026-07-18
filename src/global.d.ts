@@ -49,10 +49,13 @@ export interface QuizHistoryItem {
   timeSpent: number;
 }
 
+export interface AppStats {
+  studyHistory: StudyHistoryItem[];
+  quizHistory: QuizHistoryItem[];
+}
+
 export interface AppConfig {
   apiKey: string;
-  studyHistory?: StudyHistoryItem[];
-  quizHistory?: QuizHistoryItem[];
   fontSize?: 'small' | 'medium' | 'large';
   theme?: 'light' | 'dark';
 }
@@ -65,6 +68,8 @@ export interface ElectronAPI {
   importDeck: () => Promise<{ success: boolean; deck?: Deck; error?: string }>;
   getConfig: () => Promise<AppConfig>;
   saveConfig: (config: AppConfig) => Promise<void>;
+  getStats: () => Promise<AppStats>;
+  saveStats: (stats: AppStats) => Promise<void>;
 }
 
 declare global {
