@@ -177,3 +177,28 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fetch releases
   fetchLatestReleases();
 });
+
+// Copy macOS Terminal command function
+// eslint-disable-next-line no-unused-vars
+function copyMacCommand(button) {
+  const codeEl = button.previousElementSibling;
+  const textToCopy = codeEl.textContent.trim();
+
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    const iconCopy = button.querySelector('.icon-copy');
+    const iconCheck = button.querySelector('.icon-check');
+
+    iconCopy.classList.add('hidden');
+    iconCheck.classList.remove('hidden');
+    button.classList.add('success');
+
+    setTimeout(() => {
+      iconCopy.classList.remove('hidden');
+      iconCheck.classList.add('hidden');
+      button.classList.remove('success');
+    }, 2000);
+  }).catch(err => {
+    console.error('Kopyalama hatası:', err);
+  });
+}
+
