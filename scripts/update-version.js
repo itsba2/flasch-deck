@@ -21,9 +21,10 @@ htmlContent = htmlContent.replace(
 
 // Replace Windows download link
 htmlContent = htmlContent.replace(
-  /\/releases\/download\/v\d+\.\d+\.\d+\/FlaschDeck-Setup-\d+\.\d+\.\d+\.exe/g,
-  `/releases/download/v${version}/FlaschDeck-Setup-${version}.exe`
+  /\/releases\/download\/v\d+\.\d+\.\d+\/FlaschDeck[-.]Setup[-.]\d+\.\d+\.\d+\.exe/g,
+  `/releases/download/v${version}/FlaschDeck.Setup.${version}.exe`
 );
+
 
 // Replace macOS download link
 htmlContent = htmlContent.replace(
